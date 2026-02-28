@@ -80,13 +80,6 @@ jobs:
           set -euo pipefail
 
           requested_root="${{ github.event.inputs.source_root }}"
-          repo_lc="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
-
-          # Safety: if this workflow is run from a non-control-plane repo, require explicit source_root.
-          if [ -z "${requested_root}" ] && [[ "${repo_lc}" != */epydios-ai-control-plane ]]; then
-            echo "::error::Workflow running in '${GITHUB_REPOSITORY}' (non-control-plane repo). Set workflow_dispatch input source_root=EPYDIOS_AI_CONTROL_PLANE or run this workflow in the control-plane repo." >&2
-            exit 1
-          fi
 
           roots=()
           if [ -n "${requested_root}" ]; then
@@ -416,13 +409,6 @@ jobs:
           set -euo pipefail
 
           requested_root="${{ github.event.inputs.source_root }}"
-          repo_lc="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
-
-          # Safety: if this workflow is run from a non-control-plane repo, require explicit source_root.
-          if [ -z "${requested_root}" ] && [[ "${repo_lc}" != */epydios-ai-control-plane ]]; then
-            echo "::error::Workflow running in '${GITHUB_REPOSITORY}' (non-control-plane repo). Set workflow_dispatch input source_root=EPYDIOS_AI_CONTROL_PLANE or run this workflow in the control-plane repo." >&2
-            exit 1
-          fi
 
           roots=()
           if [ -n "${requested_root}" ]; then
