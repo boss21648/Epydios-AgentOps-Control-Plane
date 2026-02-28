@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: epydios-oss-policy-opa-rego
+data:
+  policy.rego: |
+    package epydios.policy
+
+    deny_reasons[r] {
+      lower(input.action.verb) == "delete"
+      r := {
+        "code": "DELETE_DENIED",
+        "message": "delete verb is denied by OSS baseline policy"
+      }
+    }
+
+    deny_reasons[r] {
+      lower(object.get(input.meta, "environment", "")) == "prod"
+      lower(object.get(input, "mode", "enforce")) != "audit"
+      lower(object.get(input.subject, "type", "")) == "user"
+      attrs := object.get(input.subject, "attributes", {})
+      not object.get(attrs, "approvedForProd", false)
+      r := {
+        "code": "PROD_APPROVAL_REQUIRED",
+        "message": "user subject requires approvedForProd=true for prod enforce mode"
+      }
+    }
+
+    evaluate = resp {
+      reasons := [x | deny_reasons[x]]
+      count(reasons) > 0
+      resp := {
+        "decision": "DENY",
+        "reasons": reasons,
+        "output": {
+          "engine": "opa",
+          "rule": "deny",
+          "reasonCount": count(reasons)
+        }
+      }
+    }
+
+    evaluate = resp {
+      reasons := [x | deny_reasons[x]]
+      count(reasons) == 0
+      resp := {
+        "decision": "ALLOW",
+        "grantToken": sprintf("oss-grant-%s", [object.get(input.meta, "requestId", "unknown")]),
+        "reasons": [
+          {
+            "code": "ALLOW_DEFAULT",
+            "message": "Allowed by OSS baseline OPA policy."
+          }
+        ],
+        "output": {
+          "engine": "opa",
+          "rule": "default-allow"
+        }
+      }
+    }

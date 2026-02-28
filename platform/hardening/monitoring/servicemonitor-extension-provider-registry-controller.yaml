@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: epydios-extension-provider-registry-controller
+  labels:
+    app.kubernetes.io/name: extension-provider-registry-controller
+    app.kubernetes.io/component: hardening
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  namespaceSelector:
+    matchNames:
+      - epydios-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: extension-provider-registry-controller
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/part-of: epydios-ai-control-plane
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

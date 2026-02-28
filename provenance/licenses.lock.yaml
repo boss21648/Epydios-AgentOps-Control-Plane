@@ -1,0 +1,104 @@
+schema_version: 1
+generated_by: manual-bootstrap
+policy:
+  default_approval_target: permissive
+  accepted_families:
+    - Apache-2.0
+    - BSD-2-Clause
+    - BSD-3-Clause
+    - MIT
+    - PostgreSQL
+  notes:
+    - Record the license actually shipped for each dependency version.
+    - Review transitive licenses via SBOM before external release.
+dependencies:
+  - name: cloudnative-pg
+    source_ref: cloudnative-pg/cloudnative-pg
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: cert-manager
+    source_ref: cert-manager/cert-manager
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: external-secrets
+    source_ref: external-secrets/external-secrets
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: gateway-api
+    source_ref: kubernetes-sigs/gateway-api
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: opentelemetry-operator
+    source_ref: open-telemetry/opentelemetry-operator
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: fluent-bit
+    source_ref: fluent/fluent-bit
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: keda
+    source_ref: kedacore/keda
+    expected_license: Apache-2.0
+    verification_status: verified
+    required: true
+  - name: argo-rollouts
+    source_ref: argoproj/argo-rollouts
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/argoproj-argo-rollouts-dd8a4db/LICENSE."
+    required: false
+  - name: argo-events
+    source_ref: argoproj/argo-events
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/argoproj-argo-events-f52ff16/LICENSE."
+    required: false
+  - name: kserve
+    source_ref: kserve/kserve
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/kserve-kserve-af8ce37/LICENSE."
+    required: false
+  - name: kuberay
+    source_ref: ray-project/kuberay
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/ray-project-kuberay-43aff0c/LICENSE."
+    required: false
+  - name: kyverno
+    source_ref: kyverno/kyverno
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/kyverno-kyverno-ca5c16f/LICENSE."
+    required: false
+  - name: postgres
+    source_ref: postgresql.org
+    expected_license: PostgreSQL
+    verification_status: verified
+    verification_evidence: "Validated in running pod epydios-system/epydios-postgres-1 at /usr/share/doc/postgresql-18/copyright (License: PostgreSQL)."
+    required: true
+  - name: valkey
+    source_ref: valkey-io/valkey
+    expected_license: BSD-3-Clause
+    verification_status: deferred
+    required: false
+    notes: Not part of current baseline/runtime dependency graph; deferred until an explicit caching/data-plane milestone adopts Valkey.
+  - name: seaweedfs
+    source_ref: seaweedfs/seaweedfs
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/seaweedfs-seaweedfs-453310b/LICENSE."
+    required: false
+  - name: cilium
+    source_ref: cilium/cilium
+    expected_license: Apache-2.0
+    verification_status: verified
+    verification_evidence: "Verified Apache-2.0 text in SUBSTRATE_UPSTREAMS/cilium-cilium-0b3754e/LICENSE."
+    required: false
+    notes: Review transitive/embedded artifacts before release BOM sign-off.

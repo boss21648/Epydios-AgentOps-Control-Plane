@@ -1,0 +1,13 @@
+{
+  "providerId": "oss-evidence-memory",
+  "providerVersion": "0.1.0",
+  "storageUriBase": "memory://epydios-oss-evidence",
+  "bundleManifestUriBase": "memory://epydios-oss-evidence/bundles",
+  "capabilities": [
+    "evidence.record",
+    "evidence.finalize_bundle",
+    "retention.basic"
+  ],
+  "defaultRetentionClass": "standard"
+}
+

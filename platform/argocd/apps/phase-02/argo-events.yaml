@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-events
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+spec:
+  project: epydios-platform
+  source:
+    repoURL: https://github.com/argoproj/argo-events.git
+    targetRevision: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    path: manifests/cluster-install
+    kustomize:
+      images:
+        - quay.io/argoproj/argo-events:v1.9.8
+      patches:
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: controller-manager
+          patch: |-
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: controller-manager
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: controller-manager
+                      env:
+                        - name: ARGO_EVENTS_IMAGE
+                          value: quay.io/argoproj/argo-events:v1.9.8
+                          valueFrom: null
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo-events
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

@@ -1,0 +1,27 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: m10-mtls-bearer-evidence
+spec:
+  providerType: EvidenceProvider
+  providerId: m10-mtls-bearer-evidence-provider
+  contractVersion: v1alpha1
+  endpoint:
+    url: https://m10-mtls-bearer-evidence-provider.epydios-system.svc.cluster.local:8443
+    timeoutSeconds: 5
+  auth:
+    mode: MTLSAndBearerTokenSecret
+    bearerTokenSecretRef:
+      name: m10-mtls-bearer-client-token
+      key: token
+    clientTLSSecretRef:
+      name: m10-mtls-controller-client
+    caSecretRef:
+      name: m10-mtls-provider-ca
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - evidence.record
+    - evidence.finalize_bundle
+

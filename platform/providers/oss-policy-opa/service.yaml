@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: epydios-oss-policy-provider
+spec:
+  selector:
+    app.kubernetes.io/name: epydios-oss-policy-provider
+    app.kubernetes.io/component: provider
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+

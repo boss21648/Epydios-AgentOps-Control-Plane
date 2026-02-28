@@ -1,0 +1,21 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: oss-evidence-memory
+  namespace: epydios-system
+spec:
+  providerType: EvidenceProvider
+  providerId: oss-evidence-memory
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://epydios-oss-evidence-provider.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 10
+  auth:
+    mode: None
+  selection:
+    enabled: true
+    priority: 90
+  advertisedCapabilities:
+    - evidence.record
+    - evidence.finalize_bundle
+    - retention.basic

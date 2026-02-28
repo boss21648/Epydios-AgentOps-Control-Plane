@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "requestId": "m10-evidence-record-001",
+    "timestamp": "2026-02-27T00:00:00Z",
+    "tenantId": "tenant-alpha",
+    "projectId": "project-a",
+    "environment": "dev"
+  },
+  "eventType": "policy.decision",
+  "eventId": "policy-decision-001",
+  "runId": "m10-run-001",
+  "stage": "authorize",
+  "payload": {
+    "decision": "ALLOW"
+  },
+  "retentionClass": "standard"
+}
+

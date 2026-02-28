@@ -1,0 +1,22 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: mtls-only-profile
+spec:
+  providerType: ProfileResolver
+  providerId: mtls-only-profile-provider
+  contractVersion: v1alpha1
+  endpoint:
+    url: https://mtls-only-provider.epydios-system.svc.cluster.local:8443
+    timeoutSeconds: 5
+  auth:
+    mode: MTLS
+    clientTLSSecretRef:
+      name: epydios-controller-mtls-client
+    caSecretRef:
+      name: epydios-provider-ca
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - profile.resolve

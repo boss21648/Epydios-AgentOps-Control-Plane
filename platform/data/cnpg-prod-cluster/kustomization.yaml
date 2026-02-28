@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: epydios-system
+resources:
+  - postgres-app-secret.yaml
+  - postgres-superuser-secret.yaml
+  - postgres-backup-s3-secret.yaml
+  - cluster.yaml
+  - scheduled-backup.yaml

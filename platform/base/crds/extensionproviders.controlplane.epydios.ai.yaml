@@ -1,0 +1,168 @@
+# Local copy of the v1alpha1 ExtensionProvider CRD for kustomize root-local loading.
+# Source of truth remains: contracts/extensions/v1alpha1/provider-registration-crd.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: extensionproviders.controlplane.epydios.ai
+spec:
+  group: controlplane.epydios.ai
+  scope: Namespaced
+  names:
+    plural: extensionproviders
+    singular: extensionprovider
+    kind: ExtensionProvider
+    shortNames:
+      - eprov
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              required:
+                - providerType
+                - endpoint
+              properties:
+                providerType:
+                  type: string
+                  enum:
+                    - PolicyProvider
+                    - EvidenceProvider
+                    - ProfileResolver
+                providerId:
+                  type: string
+                contractVersion:
+                  type: string
+                  default: v1alpha1
+                endpoint:
+                  type: object
+                  required:
+                    - url
+                  properties:
+                    url:
+                      type: string
+                    timeoutSeconds:
+                      type: integer
+                      minimum: 1
+                      maximum: 300
+                      default: 10
+                    healthPath:
+                      type: string
+                      default: /healthz
+                    capabilitiesPath:
+                      type: string
+                      default: /v1alpha1/capabilities
+                auth:
+                  type: object
+                  properties:
+                    mode:
+                      type: string
+                      enum:
+                        - None
+                        - BearerTokenSecret
+                        - MTLS
+                        - MTLSAndBearerTokenSecret
+                    bearerTokenSecretRef:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        key:
+                          type: string
+                          default: token
+                    clientTLSSecretRef:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                    caSecretRef:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                selection:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: true
+                    priority:
+                      type: integer
+                      default: 100
+                    tenantSelector:
+                      type: object
+                      properties:
+                        matchLabels:
+                          type: object
+                          additionalProperties:
+                            type: string
+                    environmentSelector:
+                      type: array
+                      items:
+                        type: string
+                advertisedCapabilities:
+                  type: array
+                  items:
+                    type: string
+                annotations:
+                  type: object
+                  additionalProperties:
+                    type: string
+            status:
+              type: object
+              properties:
+                observedGeneration:
+                  type: integer
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      reason:
+                        type: string
+                      message:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                resolved:
+                  type: object
+                  properties:
+                    providerId:
+                      type: string
+                    contractVersion:
+                      type: string
+                    capabilities:
+                      type: array
+                      items:
+                        type: string
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Type
+          type: string
+          jsonPath: .spec.providerType
+        - name: Enabled
+          type: boolean
+          jsonPath: .spec.selection.enabled
+        - name: Priority
+          type: integer
+          jsonPath: .spec.selection.priority
+        - name: Ready
+          type: string
+          jsonPath: .status.conditions[?(@.type=="Ready")].status
+

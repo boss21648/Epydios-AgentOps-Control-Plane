@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: epydios-extension-provider-registry-controller
+  labels:
+    app.kubernetes.io/name: extension-provider-registry-controller
+    app.kubernetes.io/component: hardening
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  groups:
+    - name: epydios.controlplane.rules
+      rules:
+        - alert: EpydiosExtensionProviderRegistryControllerUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="epydios-system",deployment="extension-provider-registry-controller"} < 1
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Extension provider registry controller is unavailable"
+            description: "No available replicas for deployment epydios-system/extension-provider-registry-controller for more than 10 minutes."
+        - alert: EpydiosControlPlaneProviderCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="epydios-system",container=~"controller|policy-provider|evidence-provider|profile-resolver"}[15m]) > 3
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Control-plane provider container restart rate is high"
+            description: "One or more control-plane/provider containers restarted more than 3 times in 15 minutes."

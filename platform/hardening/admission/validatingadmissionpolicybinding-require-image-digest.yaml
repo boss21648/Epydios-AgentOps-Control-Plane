@@ -1,0 +1,12 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: epydios-require-image-digest-binding
+spec:
+  policyName: epydios-require-image-digest
+  validationActions:
+    - Deny
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        epydios.ai/admission-enforced: "true"

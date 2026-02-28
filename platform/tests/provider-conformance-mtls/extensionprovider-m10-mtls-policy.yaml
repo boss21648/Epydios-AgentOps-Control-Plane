@@ -1,0 +1,24 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: m10-mtls-policy
+spec:
+  providerType: PolicyProvider
+  providerId: m10-mtls-policy-provider
+  contractVersion: v1alpha1
+  endpoint:
+    url: https://m10-mtls-policy-provider.epydios-system.svc.cluster.local:8443
+    timeoutSeconds: 5
+  auth:
+    mode: MTLS
+    clientTLSSecretRef:
+      name: m10-mtls-controller-client
+    caSecretRef:
+      name: m10-mtls-provider-ca
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - policy.evaluate
+    - policy.validate_bundle
+

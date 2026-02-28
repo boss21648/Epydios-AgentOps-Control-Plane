@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: epydios-control-plane-promotion-order
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+    app.kubernetes.io/component: promotion
+data:
+  sequence: "dev,staging,prod"
+  policy: |
+    1. Promote to dev first after merge to main.
+    2. Promote to staging only after dev health checks and staging-full gate pass.
+    3. Promote to prod only after staging sign-off, prod-full gate pass, and release evidence.
+  required_gates: |
+    dev: PROFILE=local-fast ./platform/ci/bin/run-gate-profile.sh
+    staging: PROFILE=staging-full ./platform/ci/bin/run-gate-profile.sh
+    prod: PROFILE=prod-full ./platform/ci/bin/run-gate-profile.sh

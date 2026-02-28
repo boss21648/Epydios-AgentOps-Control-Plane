@@ -1,0 +1,10 @@
+{
+  "meta": {
+    "requestId": "m10-policy-invalid-001"
+  },
+  "subject": {
+    "type": "user"
+  },
+  "action": {}
+}
+

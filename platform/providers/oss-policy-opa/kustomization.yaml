@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: epydios-system
+resources:
+  - serviceaccount.yaml
+  - configmap-adapter.yaml
+  - configmap-opa-policy.yaml
+  - service.yaml
+  - deployment.yaml
+  - extensionprovider.yaml
+labels:
+  - pairs:
+      app.kubernetes.io/name: epydios-oss-policy-provider
+      app.kubernetes.io/component: provider
+      app.kubernetes.io/part-of: epydios-ai-control-plane
+    includeSelectors: true
+    includeTemplates: true

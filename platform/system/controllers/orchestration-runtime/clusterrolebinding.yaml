@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: epydios-orchestration-runtime
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: epydios-orchestration-runtime
+subjects:
+  - kind: ServiceAccount
+    name: orchestration-runtime
+    namespace: epydios-system

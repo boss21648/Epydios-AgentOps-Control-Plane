@@ -1,0 +1,157 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: PlatformBaselineCatalog
+metadata:
+  name: epydios-ai-control-plane-baseline
+spec:
+  profile: k8s-enterprise-baseline
+  sequence:
+    - phaseId: phase-00-foundation-data
+      description: Core persistence, TLS, secrets, ingress/gateway API primitives
+      components:
+        - cloudnative-pg
+        - cert-manager
+        - external-secrets
+        - gateway-api
+    - phaseId: phase-01-observability-runtime
+      description: Telemetry, logging, and autoscaling foundations
+      components:
+        - opentelemetry-operator
+        - fluent-bit
+        - keda
+        - epydios-runtime-orchestrator
+    - phaseId: phase-02-delivery-events
+      description: Progressive delivery and event-driven workflow wiring
+      components:
+        - argo-rollouts
+        - argo-events
+    - phaseId: phase-03-inference
+      description: Standardized inference serving layer (first)
+      components:
+        - kserve
+    - phaseId: phase-04-distributed-compute
+      description: Add when distributed compute/evals require it
+      components:
+        - kuberay
+  components:
+    cloudnative-pg:
+      installMethod: helm
+      namespace: cnpg-system
+      sourceRef: cloudnative-pg/cloudnative-pg
+      chartRef:
+        repoUrl: https://cloudnative-pg.github.io/charts
+        chart: cloudnative-pg
+      dependsOn: []
+      purpose: Postgres operator for control-plane metadata/state
+      status: planned
+    cert-manager:
+      installMethod: helm
+      namespace: cert-manager
+      sourceRef: cert-manager/cert-manager
+      chartRef:
+        repoUrl: https://charts.jetstack.io
+        chart: cert-manager
+      dependsOn: []
+      purpose: Cluster certificate lifecycle and PKI automation
+      status: planned
+    external-secrets:
+      installMethod: helm
+      namespace: external-secrets
+      sourceRef: external-secrets/external-secrets
+      chartRef:
+        repoUrl: https://charts.external-secrets.io
+        chart: external-secrets
+      dependsOn:
+        - cert-manager
+      purpose: External secret sync into Kubernetes
+      status: planned
+    gateway-api:
+      installMethod: manifests
+      namespace: gateway-system
+      sourceRef: kubernetes-sigs/gateway-api
+      manifestsRef:
+        kind: crds
+        selector: standard/gateway-api-install
+      dependsOn: []
+      purpose: Gateway API CRDs used by gateway implementations
+      status: planned
+    opentelemetry-operator:
+      installMethod: helm
+      namespace: observability
+      sourceRef: open-telemetry/opentelemetry-operator
+      chartRef:
+        repoUrl: https://open-telemetry.github.io/opentelemetry-helm-charts
+        chart: opentelemetry-operator
+      dependsOn:
+        - cert-manager
+      purpose: Manage OTel collectors/instrumentation resources on cluster
+      status: planned
+    fluent-bit:
+      installMethod: helm
+      namespace: logging
+      sourceRef: fluent/fluent-bit
+      chartRef:
+        repoUrl: https://fluent.github.io/helm-charts
+        chart: fluent-bit
+      dependsOn: []
+      purpose: Log collection and forwarding into OpenSearch
+      status: planned
+    keda:
+      installMethod: helm
+      namespace: keda
+      sourceRef: kedacore/keda
+      chartRef:
+        repoUrl: https://kedacore.github.io/charts
+        chart: keda
+      dependsOn:
+        - cert-manager
+      purpose: Event-driven autoscaling for async workers and inference jobs
+      status: planned
+    epydios-runtime-orchestrator:
+      installMethod: manifests
+      namespace: epydios-system
+      sourceRef: epydios-ai-control-plane
+      manifestsRef:
+        kind: kustomize
+        selector: platform/system/controllers/orchestration-runtime
+      dependsOn:
+        - cloudnative-pg
+      purpose: Persistent orchestration runtime API for profile/policy/evidence execution runs
+      status: validated-local
+    argo-rollouts:
+      installMethod: manifests
+      namespace: argo-rollouts
+      sourceRef: argoproj/argo-rollouts
+      dependsOn:
+        - gateway-api
+      purpose: Canary and blue/green rollouts for control-plane services
+      status: planned
+    argo-events:
+      installMethod: manifests
+      namespace: argo-events
+      sourceRef: argoproj/argo-events
+      dependsOn:
+        - keda
+      purpose: Event sources/sensors for workflow and automation triggers
+      status: planned
+    kserve:
+      installMethod: manifests
+      namespace: kserve
+      sourceRef: kserve/kserve
+      dependsOn:
+        - cert-manager
+        - gateway-api
+        - keda
+      purpose: Kubernetes-native inference serving control plane
+      status: planned
+      decision: chosen-before-kuberay
+    kuberay:
+      installMethod: helm
+      namespace: kuberay-system
+      sourceRef: ray-project/kuberay
+      chartRef:
+        repoUrl: https://ray-project.github.io/kuberay-helm
+        chart: kuberay-operator
+      dependsOn:
+        - keda
+      purpose: Distributed compute/runtime for Ray workloads (optional phase)
+      status: planned

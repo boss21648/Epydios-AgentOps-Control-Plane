@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kserve
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  project: epydios-platform
+  source:
+    repoURL: https://github.com/kserve/kserve.git
+    targetRevision: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    path: config/overlays/standalone/kserve
+    kustomize:
+      images:
+        - kserve/kserve-controller:v0.16.0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kserve
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

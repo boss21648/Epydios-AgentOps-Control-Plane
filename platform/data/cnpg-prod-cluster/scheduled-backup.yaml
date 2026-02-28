@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: epydios-postgres-daily
+  labels:
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+    app.kubernetes.io/component: postgres
+spec:
+  schedule: "0 3 * * *"
+  immediate: false
+  backupOwnerReference: self
+  method: barmanObjectStore
+  cluster:
+    name: epydios-postgres

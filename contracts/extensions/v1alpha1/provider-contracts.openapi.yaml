@@ -1,0 +1,523 @@
+openapi: 3.1.0
+info:
+  title: Epydios AgentOps Control Plane Extension Provider Contracts
+  version: v1alpha1
+  summary: Versioned HTTP/JSON contracts for PolicyProvider, EvidenceProvider, and ProfileResolver.
+  description: |
+    This contract is the public plug-in surface used by OSS baseline providers and private
+    providers (including AIMXS integrations). Breaking changes require a new version.
+servers:
+  - url: https://provider.internal
+tags:
+  - name: Common
+  - name: PolicyProvider
+  - name: EvidenceProvider
+  - name: ProfileResolver
+paths:
+  /healthz:
+    get:
+      tags: [Common]
+      operationId: healthz
+      summary: Liveness check
+      responses:
+        "200":
+          description: Provider process is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+  /v1alpha1/capabilities:
+    get:
+      tags: [Common]
+      operationId: getCapabilities
+      summary: Return provider identity and capability advertisement
+      responses:
+        "200":
+          description: Provider capability advertisement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderCapabilitiesResponse"
+  /v1alpha1/policy-provider/evaluate:
+    post:
+      tags: [PolicyProvider]
+      operationId: policyEvaluate
+      summary: Evaluate a policy decision request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyEvaluateRequest"
+      responses:
+        "200":
+          description: Policy evaluation decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyEvaluateResponse"
+        "400":
+          $ref: "#/components/responses/ProviderError"
+        "401":
+          $ref: "#/components/responses/ProviderError"
+        "403":
+          $ref: "#/components/responses/ProviderError"
+        "500":
+          $ref: "#/components/responses/ProviderError"
+  /v1alpha1/policy-provider/validate-bundle:
+    post:
+      tags: [PolicyProvider]
+      operationId: policyValidateBundle
+      summary: Validate policy bundle metadata or content before activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyBundleValidationRequest"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyBundleValidationResponse"
+        "400":
+          $ref: "#/components/responses/ProviderError"
+        "500":
+          $ref: "#/components/responses/ProviderError"
+  /v1alpha1/evidence-provider/record:
+    post:
+      tags: [EvidenceProvider]
+      operationId: evidenceRecord
+      summary: Record a structured evidence event or artifact reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceRecordRequest"
+      responses:
+        "200":
+          description: Record accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceRecordResponse"
+        "400":
+          $ref: "#/components/responses/ProviderError"
+        "500":
+          $ref: "#/components/responses/ProviderError"
+  /v1alpha1/evidence-provider/finalize-bundle:
+    post:
+      tags: [EvidenceProvider]
+      operationId: evidenceFinalizeBundle
+      summary: Finalize and materialize an evidence bundle manifest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceFinalizeBundleRequest"
+      responses:
+        "200":
+          description: Bundle finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceFinalizeBundleResponse"
+        "400":
+          $ref: "#/components/responses/ProviderError"
+        "500":
+          $ref: "#/components/responses/ProviderError"
+  /v1alpha1/profile-resolver/resolve:
+    post:
+      tags: [ProfileResolver]
+      operationId: profileResolve
+      summary: Resolve the active execution profile for a request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileResolveRequest"
+      responses:
+        "200":
+          description: Profile selection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResolveResponse"
+        "400":
+          $ref: "#/components/responses/ProviderError"
+        "500":
+          $ref: "#/components/responses/ProviderError"
+components:
+  responses:
+    ProviderError:
+      description: Structured provider error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProviderError"
+  schemas:
+    ObjectMeta:
+      type: object
+      required: [requestId, timestamp]
+      properties:
+        requestId:
+          type: string
+          description: Correlation ID generated by the control plane
+        timestamp:
+          type: string
+          format: date-time
+        tenantId:
+          type: string
+        projectId:
+          type: string
+        environment:
+          type: string
+        actor:
+          type: object
+          additionalProperties: true
+    ResourceRef:
+      type: object
+      properties:
+        kind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+        uid:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+    SubjectRef:
+      type: object
+      properties:
+        type:
+          type: string
+          description: user, serviceaccount, workload, system, tenant
+        id:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    ActionRef:
+      type: object
+      required: [verb]
+      properties:
+        verb:
+          type: string
+        target:
+          type: string
+        attributes:
+          type: object
+          additionalProperties: true
+    DecisionReason:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    Obligation:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+    ProviderCapabilitiesResponse:
+      type: object
+      required: [providerType, providerId, contractVersion, capabilities]
+      properties:
+        providerType:
+          type: string
+          enum: [PolicyProvider, EvidenceProvider, ProfileResolver]
+        providerId:
+          type: string
+        contractVersion:
+          type: string
+          enum: [v1alpha1]
+        providerVersion:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        status:
+          type: object
+          additionalProperties: true
+    ProviderError:
+      type: object
+      required: [errorCode, message]
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+        retryable:
+          type: boolean
+          default: false
+        details:
+          type: object
+          additionalProperties: true
+    PolicyEvaluateRequest:
+      type: object
+      required: [meta, subject, action]
+      properties:
+        meta:
+          $ref: "#/components/schemas/ObjectMeta"
+        profile:
+          type: object
+          properties:
+            profileId:
+              type: string
+            profileVersion:
+              type: string
+            source:
+              type: string
+        subject:
+          $ref: "#/components/schemas/SubjectRef"
+        action:
+          $ref: "#/components/schemas/ActionRef"
+        resource:
+          $ref: "#/components/schemas/ResourceRef"
+        context:
+          type: object
+          additionalProperties: true
+        mode:
+          type: string
+          enum: [enforce, audit]
+          default: enforce
+        dryRun:
+          type: boolean
+          default: false
+    PolicyEvaluateResponse:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [ALLOW, DENY, CHALLENGE, DEFER]
+        reasons:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionReason"
+        obligations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Obligation"
+        policyBundle:
+          type: object
+          properties:
+            policyId:
+              type: string
+            policyVersion:
+              type: string
+            checksum:
+              type: string
+        evidenceRefs:
+          type: array
+          items:
+            type: string
+        output:
+          type: object
+          additionalProperties: true
+    PolicyBundleValidationRequest:
+      type: object
+      required: [meta, bundle]
+      properties:
+        meta:
+          $ref: "#/components/schemas/ObjectMeta"
+        bundle:
+          type: object
+          properties:
+            policyId:
+              type: string
+            policyVersion:
+              type: string
+            contentType:
+              type: string
+            checksum:
+              type: string
+            uri:
+              type: string
+              format: uri
+            inline:
+              description: Optional inline bundle payload for small bundles
+        expectedCapabilities:
+          type: array
+          items:
+            type: string
+    PolicyBundleValidationResponse:
+      type: object
+      required: [valid]
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionReason"
+        warnings:
+          type: array
+          items:
+            $ref: "#/components/schemas/DecisionReason"
+        discoveredCapabilities:
+          type: array
+          items:
+            type: string
+    EvidenceRecordRequest:
+      type: object
+      required: [meta, eventType]
+      properties:
+        meta:
+          $ref: "#/components/schemas/ObjectMeta"
+        eventType:
+          type: string
+        eventId:
+          type: string
+        runId:
+          type: string
+        stage:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        artifactRefs:
+          type: array
+          items:
+            type: object
+            properties:
+              uri:
+                type: string
+                format: uri
+              checksum:
+                type: string
+              mediaType:
+                type: string
+        retentionClass:
+          type: string
+    EvidenceRecordResponse:
+      type: object
+      required: [evidenceId, accepted]
+      properties:
+        accepted:
+          type: boolean
+          default: true
+        evidenceId:
+          type: string
+        checksum:
+          type: string
+        storageUri:
+          type: string
+        bundleHint:
+          type: string
+    EvidenceFinalizeBundleRequest:
+      type: object
+      required: [meta, bundleId]
+      properties:
+        meta:
+          $ref: "#/components/schemas/ObjectMeta"
+        bundleId:
+          type: string
+        runId:
+          type: string
+        evidenceIds:
+          type: array
+          items:
+            type: string
+        retentionClass:
+          type: string
+        annotations:
+          type: object
+          additionalProperties: true
+    EvidenceFinalizeBundleResponse:
+      type: object
+      required: [bundleId, manifestUri]
+      properties:
+        bundleId:
+          type: string
+        manifestUri:
+          type: string
+        manifestChecksum:
+          type: string
+        itemCount:
+          type: integer
+          minimum: 0
+    ProfileResolveRequest:
+      type: object
+      required: [meta]
+      properties:
+        meta:
+          $ref: "#/components/schemas/ObjectMeta"
+        workload:
+          $ref: "#/components/schemas/ResourceRef"
+        subject:
+          $ref: "#/components/schemas/SubjectRef"
+        task:
+          type: object
+          properties:
+            kind:
+              type: string
+            sensitivity:
+              type: string
+            latencyClass:
+              type: string
+            complianceTags:
+              type: array
+              items:
+                type: string
+        defaults:
+          type: object
+          properties:
+            profileId:
+              type: string
+        context:
+          type: object
+          additionalProperties: true
+    ProfileResolveResponse:
+      type: object
+      required: [profileId]
+      properties:
+        profileId:
+          type: string
+        profileVersion:
+          type: string
+        source:
+          type: string
+          description: e.g. static-default, policy, tenant-override, aimxs
+        ttlSeconds:
+          type: integer
+          minimum: 0
+        attributes:
+          type: object
+          additionalProperties: true
+        requiredCapabilities:
+          type: array
+          items:
+            type: string
+        policyBundleRef:
+          type: object
+          properties:
+            policyId:
+              type: string
+            policyVersion:
+              type: string
+            checksum:
+              type: string

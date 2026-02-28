@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kuberay
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  project: epydios-platform
+  source:
+    repoURL: https://ray-project.github.io/kuberay-helm
+    chart: kuberay-operator
+    targetRevision: 1.1.0
+    helm:
+      releaseName: kuberay-operator
+      parameters:
+        - name: image.repository
+          value: quay.io/kuberay/operator
+        - name: image.tag
+          value: v1.1.0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kuberay-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

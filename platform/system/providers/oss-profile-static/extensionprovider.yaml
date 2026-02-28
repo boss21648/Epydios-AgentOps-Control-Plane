@@ -1,0 +1,22 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: oss-profile-static
+spec:
+  providerType: ProfileResolver
+  providerId: oss-profile-static
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://oss-profile-static-resolver.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 5
+  auth:
+    mode: None
+  selection:
+    enabled: true
+    priority: 100
+  advertisedCapabilities:
+    - profile.resolve
+    - tenant-defaults
+    - environment-overrides
+    - task-sensitivity-routing
+

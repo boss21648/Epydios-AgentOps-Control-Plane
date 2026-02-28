@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "requestId": "m10-policy-validate-001",
+    "timestamp": "2026-02-27T00:00:00Z"
+  },
+  "bundle": {
+    "policyId": "EPYDIOS_OSS_POLICY_BASELINE",
+    "policyVersion": "v1"
+  },
+  "expectedCapabilities": [
+    "policy.evaluate",
+    "policy.validate_bundle"
+  ]
+}
+

@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: epydios-provider-egress
+  labels:
+    app.kubernetes.io/name: epydios-provider-egress
+    app.kubernetes.io/component: hardening
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: provider
+      app.kubernetes.io/part-of: epydios-ai-control-plane
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443

@@ -1,0 +1,20 @@
+{
+  "providerId": "oss-policy-opa",
+  "providerVersion": "0.1.0",
+  "opaBaseUrl": "http://127.0.0.1:8181",
+  "opaDecisionPath": "/v1/data/epydios/policy/evaluate",
+  "opaHealthPath": "/health",
+  "timeoutSeconds": 5,
+  "capabilities": [
+    "policy.evaluate",
+    "policy.validate_bundle",
+    "audit_mode",
+    "opa.delegate"
+  ],
+  "policyBundle": {
+    "policyId": "EPYDIOS_OSS_POLICY_BASELINE",
+    "policyVersion": "v1",
+    "checksum": "sha256:TBD"
+  }
+}
+

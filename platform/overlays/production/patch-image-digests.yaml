@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestration-runtime
+spec:
+  template:
+    spec:
+      containers:
+        - name: runtime
+          image: ghcr.io/epydios/epydios-control-plane-runtime@sha256:babbddab65e14b247cc14a902ecb71430bb9b4161e8d925cbe50ce3417953078
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: extension-provider-registry-controller
+spec:
+  template:
+    spec:
+      containers:
+        - name: controller
+          image: ghcr.io/epydios/epydios-extension-provider-registry-controller@sha256:348e4bcc305ccfad7a71597f917d3b663596615b7ecf08b7946225a88cef2661
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oss-profile-static-resolver
+spec:
+  template:
+    spec:
+      containers:
+        - name: profile-resolver
+          image: ghcr.io/epydios/epydios-oss-profile-static-resolver@sha256:523d9cb198cd040c288c9fee82651b44a32be85b1bb9755f88bb06a64c3b2154
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: epydios-oss-policy-provider
+spec:
+  template:
+    spec:
+      containers:
+        - name: policy-provider
+          image: ghcr.io/epydios/epydios-oss-policy-opa-provider@sha256:2c8d4d7d8602c740c29e7e761b6559bde2e01dd88fba35570656f91044f9eb19
+        - name: opa
+          image: openpolicyagent/opa@sha256:15151b408ff6477e5f6b675e491cab60776be84be4fcbc19ca2d2024cec789bf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: epydios-oss-evidence-provider
+spec:
+  template:
+    spec:
+      containers:
+        - name: evidence-provider
+          image: ghcr.io/epydios/epydios-oss-evidence-memory-provider@sha256:e7def99b2aaa5252152050f11ba11b88c110d3b0cfce7fd2604472b01b08f850

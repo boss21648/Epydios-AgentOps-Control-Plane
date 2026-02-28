@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestration-runtime
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: runtime
+          env:
+            - name: AUTHN_ENABLED
+              value: "true"
+            - name: AUTHN_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: issuer
+            - name: AUTHN_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: audience
+            - name: AUTHN_JWKS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: jwks_url
+            - name: AUTHN_JWKS_CACHE_TTL
+              value: "10m"
+            - name: AUTHN_HS256_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orchestration-runtime-auth
+                  key: hs256_secret
+                  optional: true
+            - name: AUTHZ_CREATE_ROLES
+              value: runtime.platform_admin,runtime.tenant_operator
+            - name: AUTHZ_READ_ROLES
+              value: runtime.platform_admin,runtime.tenant_operator,runtime.tenant_reader
+            - name: AUTHZ_ALLOWED_CLIENT_IDS
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: allowed_client_ids
+            - name: AUTHZ_ROLE_PERMISSION_MAPPINGS_JSON
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: role_mappings_json
+            - name: AUTHZ_POLICY_MATRIX_JSON
+              valueFrom:
+                configMapKeyRef:
+                  name: orchestration-runtime-auth-config
+                  key: policy_matrix_json
+            - name: AUTHZ_POLICY_MATRIX_REQUIRED
+              value: "true"
+            - name: AUTHZ_REQUIRE_POLICY_GRANT
+              value: "true"

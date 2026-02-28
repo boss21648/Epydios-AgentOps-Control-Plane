@@ -1,0 +1,87 @@
+name: PR Kind Phase Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kind-phase03-gate:
+    name: QC + Full Gate (M7 + hardening + AIMXS boundary) (kind)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CLUSTER_NAME: epydios-ci
+      GATE_MODE: "full"
+      RUN_PHASE_00_01: "1"
+      RUN_GATEWAY_API: "1"
+      RUN_PHASE_02: "1"
+      RUN_FUNCTIONAL_SMOKE: "1"
+      RUN_PHASE_04: "1"
+      RUN_PHASE_04_SECURE: "1"
+      RUN_M7_INTEGRATION: "1"
+      RUN_M7_BACKUP_RESTORE: "1"
+      RUN_M7_UPGRADE_SAFETY: "1"
+      RUN_PRODUCTION_PLACEHOLDER_CHECK: "1"
+      RUN_PHASE_RUNTIME: "1"
+      RUN_PHASE_RUNTIME_BOOTSTRAP: "1"
+      RUN_PHASE_RUNTIME_IMAGE_PREP: "1"
+      RUN_M9_AUTHN_AUTHZ: "1"
+      RUN_M9_AUTHZ_TENANCY: "1"
+      RUN_M9_RBAC_MATRIX: "1"
+      RUN_M9_AUDIT_READ: "1"
+      RUN_PHASE_05: "0"
+      RUN_PHASE_05_FUNCTIONAL_SMOKE: "1"
+      RUN_ROTATION_CHECK: "1"
+      MIN_TLS_VALIDITY_DAYS: "30"
+      FAIL_ON_NO_MTLS_REFS: "1"
+      RUN_HARDENING_BASELINE: "1"
+      APPLY_NETWORK_POLICIES: "1"
+      APPLY_MONITORING_RESOURCES: "auto"
+      REQUIRE_MONITORING_CRDS: "0"
+      RUN_MONITORING_ALERT_SMOKE: "0"
+      AUTO_INSTALL_MONITORING_STACK: "0"
+      MONITORING_NAMESPACE: "monitoring"
+      MONITORING_RELEASE_NAME: "kube-prometheus-stack"
+      RUN_AIMXS_BOUNDARY_CHECK: "1"
+      USE_LOCAL_SUBSTRATE: "0"
+      AUTO_INSTALL_CERT_MANAGER: "1"
+      FORCE_CONFLICTS: "1"
+      RUN_PROVENANCE_CHECK: "1"
+      PROVENANCE_STRICT: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.32.2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.18.6
+
+      - name: Install kind
+        run: |
+          curl -sSL -o /tmp/kind "https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64"
+          chmod +x /tmp/kind
+          sudo mv /tmp/kind /usr/local/bin/kind
+          kind --version
+
+      - name: Preflight versions
+        run: |
+          docker --version
+          kubectl version --client=true
+          helm version --short
+
+      - name: Run CI gate
+        run: ./platform/ci/bin/pr-kind-phase03-gate.sh

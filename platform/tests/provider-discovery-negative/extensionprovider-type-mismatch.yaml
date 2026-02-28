@@ -1,0 +1,19 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: negative-type-mismatch
+spec:
+  providerType: EvidenceProvider
+  providerId: negative-type-mismatch
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://oss-profile-static-resolver.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 5
+  auth:
+    mode: None
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - evidence.record
+

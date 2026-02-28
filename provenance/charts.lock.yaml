@@ -1,0 +1,127 @@
+schema_version: 1
+generated_by: manual-bootstrap
+notes:
+  - Phase 00/01 chart versions pinned on 2026-02-26 from upstream chart indexes.
+  - Use OCI digests where supported.
+charts:
+  - component: cloudnative-pg
+    phase: phase-00-foundation-data
+    repo_url: https://cloudnative-pg.github.io/charts
+    index_url: https://cloudnative-pg.github.io/charts/index.yaml
+    chart: cloudnative-pg
+    version: 0.27.1
+    app_version: 1.28.1
+    chart_digest: sha256:67d7189f93219d355630ff7690169121cf606e67ac84abe05c53f88788de9d49
+    source_commit: 5764894fe303e159a78e74de0f4537b4fe0076ad
+    pin_status: pinned
+    status: planned
+  - component: cert-manager
+    phase: phase-00-foundation-data
+    repo_url: https://charts.jetstack.io
+    index_url: https://charts.jetstack.io/index.yaml
+    chart: cert-manager
+    version: v1.19.4
+    app_version: v1.19.4
+    chart_digest: sha256:d0c202f57b8653eb957fb5b2f9472c1b11cf6b51acc5c777e4b824f7b5a9ea87
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    pin_status: pinned
+    status: planned
+  - component: external-secrets
+    phase: phase-00-foundation-data
+    repo_url: https://charts.external-secrets.io
+    index_url: https://charts.external-secrets.io/index.yaml
+    chart: external-secrets
+    version: 2.0.1
+    app_version: v2.0.1
+    chart_digest: sha256:74fb945ad87037a2f48dd00a469903b4379d1b20d4c54949af092f50dc0bb2b5
+    source_commit: 03f08149abde12f917856ad0eefbfce0b0d0a55e
+    pin_status: pinned
+    status: planned
+  - component: opentelemetry-operator
+    phase: phase-01-observability-runtime
+    repo_url: https://open-telemetry.github.io/opentelemetry-helm-charts
+    index_url: https://open-telemetry.github.io/opentelemetry-helm-charts/index.yaml
+    chart: opentelemetry-operator
+    version: 0.106.0
+    app_version: 0.145.0
+    chart_digest: sha256:f2210d505a93e51e74661e38dd4201524d6d35d969afbbf45225d938ec7f7b09
+    source_commit: e7d0a55bb871edf0e54e28f593056a60cb48640e
+    pin_status: pinned
+    status: planned
+  - component: fluent-bit
+    phase: phase-01-observability-runtime
+    repo_url: https://fluent.github.io/helm-charts
+    index_url: https://fluent.github.io/helm-charts/index.yaml
+    chart: fluent-bit
+    version: 0.55.0
+    app_version: 4.2.2
+    chart_digest: sha256:992bfd2b27184a0825f5638a038cdf332322b8925d22aee18963f9d12ae55da2
+    source_commit: bc966ed6d8925f7b06d303e4e909293b1fd3a6cb
+    pin_status: pinned
+    status: planned
+  - component: keda
+    phase: phase-01-observability-runtime
+    repo_url: https://kedacore.github.io/charts
+    index_url: https://kedacore.github.io/charts/index.yaml
+    chart: keda
+    version: 2.19.0
+    app_version: 2.19.0
+    chart_digest: sha256:6ee0edbb604577aaa2db07a4eecd836c69e1b1266f2db88a55010870faaad34b
+    source_commit: b0cf24c11f1a6e529669e4ff0533b15452ca6330
+    pin_status: pinned
+    status: planned
+  - component: argo-rollouts
+    phase: phase-02-delivery-events
+    install_method: manifests
+    repo_url: https://github.com/argoproj/argo-rollouts.git
+    path: manifests/cluster-install
+    version: dd8a4db3d5d053a90656490b648069bf63881133
+    app_version: v1.8.4
+    chart_digest: n/a
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    pin_status: pinned
+    status: planned
+  - component: argo-events
+    phase: phase-02-delivery-events
+    install_method: manifests
+    repo_url: https://github.com/argoproj/argo-events.git
+    path: manifests/cluster-install
+    version: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    app_version: v1.9.8
+    chart_digest: n/a
+    source_commit: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    pin_status: pinned
+    status: planned
+  - component: kserve
+    phase: phase-03-inference
+    install_method: manifests
+    repo_url: https://github.com/kserve/kserve.git
+    path: config/overlays/standalone/kserve
+    version: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    app_version: v0.16.0
+    chart_digest: n/a
+    source_commit: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    pin_status: pinned
+    status: planned
+  - component: kuberay
+    phase: phase-04-distributed-compute
+    repo_url: https://ray-project.github.io/kuberay-helm
+    index_url: https://ray-project.github.io/kuberay-helm/index.yaml
+    chart: kuberay-operator
+    version: 1.1.0
+    app_version: v1.1.0
+    chart_digest: sha256:a815e717505ed737ee1b5a196dd0e77276ed383e288ea1d9d16dd1fbf7d233b3
+    source_commit: 43aff0c59df32660663c4193e58ffc1d5a385a99
+    pin_status: pinned
+    status: planned
+  - component: kyverno
+    phase: phase-11-supply-chain-admission
+    install_method: manifests
+    repo_url: https://github.com/kyverno/kyverno.git
+    path: config/install-latest-testing.yaml
+    version: ca5c16f
+    app_version: ca5c16f
+    chart_digest: n/a
+    source_commit: ca5c16f
+    pin_status: pinned
+    status: planned

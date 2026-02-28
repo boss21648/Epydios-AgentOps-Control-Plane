@@ -1,0 +1,304 @@
+schema_version: 1
+generated_by: manual-bootstrap
+notes:
+  - Phase 00/01 image tags pinned; immutable digests remain to be filled before deployment.
+  - Prefer OCI digest pinning for all controllers and data plane images.
+  - Local Epydios images are listed with manifest/source paths so digests can be filled after CI push.
+  - Replace `sha256:TBD` only after confirming the pushed tag matches the exact built commit.
+images:
+  - component: cloudnative-pg-operator
+    phase: phase-00-foundation-data
+    image: ghcr.io/cloudnative-pg/cloudnative-pg
+    tag: "1.28.1"
+    digest: sha256:0edcdaefaa83d68822158cf4370d83d185c54db2b6beb7e0848aca16eafa6344
+    source: cloudnative-pg/cloudnative-pg
+    source_commit: 5764894fe303e159a78e74de0f4537b4fe0076ad
+    chart_version: 0.27.1
+    required: true
+    status: planned
+  - component: cert-manager-controller
+    phase: phase-00-foundation-data
+    image: quay.io/jetstack/cert-manager-controller
+    tag: v1.19.4
+    digest: sha256:9cad8065bbf57815cbcfa813b903dd8822bcd0271f7443192082b54e96a55585
+    source: cert-manager/cert-manager
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    chart_version: v1.19.4
+    required: true
+    status: planned
+  - component: cert-manager-webhook
+    phase: phase-00-foundation-data
+    image: quay.io/jetstack/cert-manager-webhook
+    tag: v1.19.4
+    digest: sha256:f41b4ac798c8ff200c29756cf86e70a00e73fe489fb6ab80d9210d1b5f476852
+    source: cert-manager/cert-manager
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    chart_version: v1.19.4
+    required: true
+    status: planned
+  - component: cert-manager-cainjector
+    phase: phase-00-foundation-data
+    image: quay.io/jetstack/cert-manager-cainjector
+    tag: v1.19.4
+    digest: sha256:5d810724b177746a8aeafd5db111b55b72389861bcec03a6d50f9c6d56ec37c0
+    source: cert-manager/cert-manager
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    chart_version: v1.19.4
+    required: true
+    status: planned
+  - component: cert-manager-startupapicheck
+    phase: phase-00-foundation-data
+    image: quay.io/jetstack/cert-manager-startupapicheck
+    tag: v1.19.4
+    digest: sha256:8e897895b9e9749447ccb84842176212195f4687e0a3c4ca892d9d410e0fd43e
+    source: cert-manager/cert-manager
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    chart_version: v1.19.4
+    required: true
+    status: planned
+  - component: external-secrets-operator
+    phase: phase-00-foundation-data
+    image: ghcr.io/external-secrets/external-secrets
+    tag: v2.0.1
+    digest: sha256:e4ca217803202017da604dc2e7627d37c32ed57bd70e34585dbcd39b065ea23f
+    source: external-secrets/external-secrets
+    source_commit: 03f08149abde12f917856ad0eefbfce0b0d0a55e
+    chart_version: 2.0.1
+    required: true
+    status: planned
+  - component: external-secrets-webhook
+    phase: phase-00-foundation-data
+    image: ghcr.io/external-secrets/external-secrets
+    tag: v2.0.1
+    digest: sha256:e4ca217803202017da604dc2e7627d37c32ed57bd70e34585dbcd39b065ea23f
+    source: external-secrets/external-secrets
+    source_commit: 03f08149abde12f917856ad0eefbfce0b0d0a55e
+    chart_version: 2.0.1
+    required: true
+    status: planned
+  - component: external-secrets-cert-controller
+    phase: phase-00-foundation-data
+    image: ghcr.io/external-secrets/external-secrets
+    tag: v2.0.1
+    digest: sha256:e4ca217803202017da604dc2e7627d37c32ed57bd70e34585dbcd39b065ea23f
+    source: external-secrets/external-secrets
+    source_commit: 03f08149abde12f917856ad0eefbfce0b0d0a55e
+    chart_version: 2.0.1
+    required: true
+    status: planned
+  - component: opentelemetry-operator
+    phase: phase-01-observability-runtime
+    image: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+    tag: "0.145.0"
+    digest: sha256:a1c3a8293150650ef43bdd4d18a555a80e7369225152ecd445509b0c6506d302
+    source: open-telemetry/opentelemetry-operator
+    source_commit: e7d0a55bb871edf0e54e28f593056a60cb48640e
+    chart_version: 0.106.0
+    required: true
+    status: planned
+  - component: fluent-bit
+    phase: phase-01-observability-runtime
+    image: cr.fluentbit.io/fluent/fluent-bit
+    tag: "4.2.2"
+    digest: sha256:7d727245767ae632eb296c2ff4d206bf2e205b5f244c1f37b8fdd61f9fb33985
+    source: fluent/fluent-bit
+    source_commit: bc966ed6d8925f7b06d303e4e909293b1fd3a6cb
+    chart_version: 0.55.0
+    required: true
+    status: planned
+  - component: keda-operator
+    phase: phase-01-observability-runtime
+    image: ghcr.io/kedacore/keda
+    tag: "2.19.0"
+    digest: sha256:9ce23a7b5af7c3863b2329a2c5ea4bd17dd4e91be7d2024472f101db6586e3bb
+    source: kedacore/keda
+    source_commit: b0cf24c11f1a6e529669e4ff0533b15452ca6330
+    chart_version: 2.19.0
+    required: true
+    status: planned
+  - component: keda-metrics-apiserver
+    phase: phase-01-observability-runtime
+    image: ghcr.io/kedacore/keda-metrics-apiserver
+    tag: "2.19.0"
+    digest: sha256:cb08d9f825aacfae684b1ca7395ff0ce6c47879d683c7fb810807dda233146b2
+    source: kedacore/keda
+    source_commit: b0cf24c11f1a6e529669e4ff0533b15452ca6330
+    chart_version: 2.19.0
+    required: true
+    status: planned
+  - component: keda-admission-webhooks
+    phase: phase-01-observability-runtime
+    image: ghcr.io/kedacore/keda-admission-webhooks
+    tag: "2.19.0"
+    digest: sha256:61f2361633b302e420b364dabdb12a97a94b9abcec80c94ab7284567911c779d
+    source: kedacore/keda
+    source_commit: b0cf24c11f1a6e529669e4ff0533b15452ca6330
+    chart_version: 2.19.0
+    required: true
+    status: planned
+  - component: epydios-extension-provider-registry-controller
+    phase: phase-01-control-plane-extensibility
+    image: ghcr.io/epydios/epydios-extension-provider-registry-controller
+    tag: "0.1.0"
+    digest: sha256:348e4bcc305ccfad7a71597f917d3b663596615b7ecf08b7946225a88cef2661
+    source: epydios-ai-control-plane
+    source_path: cmd/extension-provider-registry-controller
+    manifest_paths:
+      - platform/system/controllers/extension-provider-registry-controller/deployment.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
+    required: true
+    status: planned
+  - component: epydios-oss-profile-static-resolver
+    phase: phase-01-control-plane-extensibility
+    image: ghcr.io/epydios/epydios-oss-profile-static-resolver
+    tag: "0.1.0"
+    digest: sha256:523d9cb198cd040c288c9fee82651b44a32be85b1bb9755f88bb06a64c3b2154
+    source: epydios-ai-control-plane
+    source_path: cmd/profile-resolver-provider
+    manifest_paths:
+      - platform/system/providers/oss-profile-static/deployment.yaml
+      - platform/system/providers/oss-profile-static/extensionprovider.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
+    required: true
+    status: planned
+  - component: epydios-control-plane-runtime
+    phase: phase-01-control-plane-extensibility
+    image: ghcr.io/epydios/epydios-control-plane-runtime
+    tag: "0.1.0"
+    digest: sha256:babbddab65e14b247cc14a902ecb71430bb9b4161e8d925cbe50ce3417953078
+    source: epydios-ai-control-plane
+    source_path: cmd/control-plane-runtime
+    manifest_paths:
+      - platform/system/controllers/orchestration-runtime/deployment.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Replace digest with published immutable digest before release sign-off.
+    required: true
+    status: validated-local
+  - component: epydios-oss-policy-opa-provider
+    phase: phase-02-oss-policy-provider
+    image: ghcr.io/epydios/epydios-oss-policy-opa-provider
+    tag: "0.1.0"
+    digest: sha256:2c8d4d7d8602c740c29e7e761b6559bde2e01dd88fba35570656f91044f9eb19
+    source: epydios-ai-control-plane
+    source_path: cmd/policy-provider-opa-adapter
+    manifest_paths:
+      - platform/providers/oss-policy-opa/deployment.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
+    required: false
+    status: planned
+  - component: epydios-oss-evidence-memory-provider
+    phase: phase-02-oss-evidence-provider
+    image: ghcr.io/epydios/epydios-oss-evidence-memory-provider
+    tag: "0.1.0"
+    digest: sha256:e7def99b2aaa5252152050f11ba11b88c110d3b0cfce7fd2604472b01b08f850
+    source: epydios-ai-control-plane
+    source_path: cmd/evidence-provider-memory
+    manifest_paths:
+      - platform/providers/oss-evidence-memory/deployment.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
+    required: false
+    status: planned
+  - component: epydios-mtls-capabilities-provider
+    phase: phase-02-mtls-provider-discovery
+    image: ghcr.io/epydios/epydios-mtls-capabilities-provider
+    tag: "0.1.0"
+    digest: sha256:91ab9fabd0863cd1ce7522ddb91224693593bb8306682c3328b33f284a76bd32
+    source: epydios-ai-control-plane
+    source_path: cmd/mtls-capabilities-provider
+    manifest_paths:
+      - platform/tests/provider-discovery-mtls/deployment-mtls-only-provider.yaml
+      - platform/tests/provider-discovery-mtls/deployment-mtls-bearer-provider.yaml
+    build_context: .
+    build_notes:
+      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
+    required: false
+    status: planned
+  - component: opa-sidecar
+    phase: phase-02-oss-policy-provider
+    image: openpolicyagent/opa
+    tag: "0.67.1"
+    digest: sha256:15151b408ff6477e5f6b675e491cab60776be84be4fcbc19ca2d2024cec789bf
+    source: open-policy-agent/opa
+    manifest_paths:
+      - platform/providers/oss-policy-opa/deployment.yaml
+    required: false
+    status: planned
+  - component: postgres-smoketest-client
+    phase: local-dev-smoketest
+    image: postgres
+    tag: 16-alpine
+    digest: sha256:b7587f3cb74f4f4b2a4f9d67f052edbf95eb93f4fec7c5ada3792546caaf7383
+    source: docker-library/postgres
+    manifest_paths:
+      - platform/data/postgres-smoketest/job.yaml
+    required: false
+    status: local-only
+  - component: argo-rollouts
+    phase: phase-02-delivery-events
+    image: quay.io/argoproj/argo-rollouts
+    tag: v1.8.4
+    digest: sha256:8aef6fc56255a8fd4fc461ad7f1acca0942a0bbec58b8a05188be9ae4d0bed61
+    source: argoproj/argo-rollouts
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    manifest_paths:
+      - platform/argocd/apps/phase-02/argo-rollouts.yaml
+    required: false
+    status: planned
+  - component: argo-events
+    phase: phase-02-delivery-events
+    image: quay.io/argoproj/argo-events
+    tag: v1.9.8
+    digest: sha256:0c06bec3133acb03e68e9477743aee6d0bc73f61518d5399dedb3e16ea5bf5df
+    source: argoproj/argo-events
+    source_commit: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    manifest_paths:
+      - platform/argocd/apps/phase-02/argo-events.yaml
+    required: false
+    status: planned
+  - component: kserve-controller
+    phase: phase-03-inference
+    image: kserve/kserve-controller
+    tag: v0.16.0
+    digest: sha256:4d89de192a7961a4fa456270e8d52de0b6f6d3e301fd16d150618f052653ddf6
+    source: kserve/kserve
+    source_commit: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    manifest_paths:
+      - platform/argocd/apps/phase-03/kserve.yaml
+    required: false
+    status: planned
+  - component: kserve-kube-rbac-proxy
+    phase: phase-03-inference
+    image: quay.io/brancz/kube-rbac-proxy
+    tag: v0.18.0
+    digest: sha256:754ab2a723c8fc7ea8e09ae1224f8af5be91849b8b2f2a3735c6237f1c534187
+    source: brancz/kube-rbac-proxy
+    manifest_paths:
+      - platform/argocd/apps/phase-03/kserve.yaml
+    required: false
+    status: planned
+  - component: kuberay-operator
+    phase: phase-04-distributed-compute
+    image: quay.io/kuberay/operator
+    tag: v1.1.0
+    digest: sha256:a535757c28bcc27c06f906146970417cd88769f78df860131625d776608ec309
+    source: ray-project/kuberay
+    source_commit: 43aff0c59df32660663c4193e58ffc1d5a385a99
+    manifest_paths:
+      - platform/argocd/apps/phase-04/kuberay.yaml
+    required: false
+    status: planned

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oss-profile-static-resolver-config
+data:
+  config.json: |
+    {
+      "providerId": "oss-profile-static",
+      "providerVersion": "0.1.0",
+      "defaultProfileId": "EPYDIOS_PROFILE_BASELINE_V1",
+      "defaultProfileVersion": "v1",
+      "ttlSeconds": 300,
+      "rules": [
+        {
+          "tenantId": "regulated-tenant",
+          "environment": "prod",
+          "taskSensitivity": "high",
+          "profileId": "EPYDIOS_PROFILE_HARDENED_V1",
+          "profileVersion": "v1",
+          "source": "static-rule:regulated-prod-high"
+        },
+        {
+          "projectId": "mlops-dev",
+          "environment": "dev",
+          "profileId": "EPYDIOS_PROFILE_DEV_FAST_V1",
+          "profileVersion": "v1",
+          "source": "static-rule:mlops-dev"
+        }
+      ]
+    }
+

@@ -1,0 +1,23 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: m10-bearer-policy
+spec:
+  providerType: PolicyProvider
+  providerId: m10-bearer-policy
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://epydios-oss-policy-provider.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 5
+  auth:
+    mode: BearerTokenSecret
+    bearerTokenSecretRef:
+      name: m10-bearer-auth
+      key: token
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - policy.evaluate
+    - policy.validate_bundle
+

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestration-runtime-auth-config
+  labels:
+    app.kubernetes.io/name: orchestration-runtime
+    app.kubernetes.io/component: runtime
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+data:
+  issuer: https://auth.epydios.com/
+  audience: epydios-runtime-prod
+  jwks_url: https://auth.epydios.com/.well-known/jwks.json
+  allowed_client_ids: epydios-runtime-prod-client
+  role_mappings_json: |
+    {
+      "mappings": [
+        {"role":"runtime.platform_admin","permissions":["*"]},
+        {"role":"runtime.tenant_operator","permissions":["runtime.run.create","runtime.run.read"]},
+        {"role":"runtime.tenant_reader","permissions":["runtime.run.read"]}
+      ]
+    }
+  policy_matrix_json: |
+    {
+      "rules": [
+        {"name":"allow-platform-admin","effect":"allow","roles":["runtime.platform_admin"],"permissions":["*"],"tenants":["*"],"projects":["*"]},
+        {"name":"allow-tenant-operator","effect":"allow","roles":["runtime.tenant_operator"],"permissions":["runtime.run.create","runtime.run.read"],"tenants":["*"],"projects":["*"]},
+        {"name":"allow-tenant-reader","effect":"allow","roles":["runtime.tenant_reader"],"permissions":["runtime.run.read"],"tenants":["*"],"projects":["*"]}
+      ]
+    }

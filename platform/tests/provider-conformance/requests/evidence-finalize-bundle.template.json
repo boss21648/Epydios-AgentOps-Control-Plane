@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "requestId": "m10-evidence-finalize-001",
+    "timestamp": "2026-02-27T00:00:00Z"
+  },
+  "bundleId": "m10-bundle-001",
+  "runId": "m10-run-001",
+  "evidenceIds": [
+    "__EVIDENCE_ID__"
+  ],
+  "retentionClass": "standard",
+  "annotations": {
+    "source": "m10-conformance"
+  }
+}
+

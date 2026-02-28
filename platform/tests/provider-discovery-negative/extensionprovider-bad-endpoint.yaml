@@ -1,0 +1,19 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: negative-bad-endpoint
+spec:
+  providerType: ProfileResolver
+  providerId: negative-bad-endpoint
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://negative-no-such-provider.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 2
+  auth:
+    mode: None
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - profile.resolve
+

@@ -1,0 +1,22 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: oss-policy-opa
+spec:
+  providerType: PolicyProvider
+  providerId: oss-policy-opa
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://epydios-oss-policy-provider.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 5
+  auth:
+    mode: None
+  selection:
+    enabled: true
+    priority: 90
+  advertisedCapabilities:
+    - policy.evaluate
+    - policy.validate_bundle
+    - audit_mode
+    - opa.delegate
+

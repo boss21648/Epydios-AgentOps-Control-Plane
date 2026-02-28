@@ -1,0 +1,65 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: python-smoke
+  labels:
+    app.kubernetes.io/component: predictor
+    app.kubernetes.io/name: epydios-kserve-smoke
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+    networking.knative.dev/visibility: cluster-local
+  annotations:
+    serving.kserve.io/deploymentMode: Standard
+spec:
+  predictor:
+    containers:
+      - name: kserve-container
+        image: python:3.12-alpine
+        command:
+          - python
+          - -u
+          - -c
+        args:
+          - |
+            import json
+            import re
+            from http.server import BaseHTTPRequestHandler, HTTPServer
+
+            class Handler(BaseHTTPRequestHandler):
+                def do_GET(self):
+                    if self.path in ("/healthz", "/v1/models/python-smoke"):
+                        out = b'{"status":"ok"}'
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(out)))
+                        self.end_headers()
+                        self.wfile.write(out)
+                        return
+                    self.send_response(404)
+                    self.end_headers()
+
+                def do_POST(self):
+                    if re.match(r"^/v1/models/.+:predict$", self.path):
+                        size = int(self.headers.get("Content-Length", "0"))
+                        if size:
+                            self.rfile.read(size)
+                        out = json.dumps({"predictions": [1, 1]}).encode("utf-8")
+                        self.send_response(200)
+                        self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(out)))
+                        self.end_headers()
+                        self.wfile.write(out)
+                        return
+                    self.send_response(404)
+                    self.end_headers()
+
+            HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi

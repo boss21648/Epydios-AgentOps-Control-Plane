@@ -1,0 +1,12 @@
+schema_version: 1
+component: epydios-ai-control-plane
+policy_type: n_minus_1_to_n
+current_release: "0.1.0"
+allowed_upgrade_paths:
+  - from: "0.0.9"
+    to: "0.1.0"
+  - from: "0.1.0"
+    to: "0.1.0"
+notes:
+  - Policy enforces explicit allowed source->target release paths for local upgrade safety drills.
+  - Expand allowed paths only after validating upgrade behavior for the specific from/to pair.

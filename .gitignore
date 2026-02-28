@@ -1,0 +1,26 @@
+# OS/editor noise
+.DS_Store
+
+# Local env/temp artifacts
+*.log
+.env
+.env.*
+.tmp/
+tmp/
+dist/
+out/
+coverage/
+
+# Build artifacts (keep source Dockerfile for CI/release builds)
+build/*
+!build/docker/
+!build/docker/Dockerfile.go-binary
+
+# Generated evidence artifacts (not source code)
+provenance/promotion/*
+!provenance/promotion/.gitkeep
+provenance/c0-cleanup/*
+!provenance/c0-cleanup/.gitkeep
+provenance/aimxs/*.json
+provenance/aimxs/*.sha256
+provenance/aimxs/*.vars

@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: extension-provider-registry-controller
+  labels:
+    app.kubernetes.io/name: extension-provider-registry-controller
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: extension-provider-registry-controller
+      app.kubernetes.io/component: controller

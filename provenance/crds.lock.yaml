@@ -1,0 +1,118 @@
+schema_version: 1
+generated_by: manual-bootstrap
+notes:
+  - Track the exact CRD release source used in each environment.
+  - Some components ship CRDs through Helm; still record the CRD version here.
+crds:
+  - component: extensionproviders.controlplane.epydios.ai
+    source_type: local
+    source_path: contracts/extensions/v1alpha1/provider-registration-crd.yaml
+    version: v1alpha1
+    status: frozen
+  - component: gateway.networking.k8s.io
+    source_type: upstream
+    source_ref: kubernetes-sigs/gateway-api
+    release_or_ref: 1c39c4baddf3a2c91e93c0324f6777d3cf5b0dfe
+    source_commit: 1c39c4baddf3a2c91e93c0324f6777d3cf5b0dfe
+    path: config/crd
+    status: planned
+  - component: postgresql.cnpg.io
+    source_type: upstream
+    source_ref: cloudnative-pg/cloudnative-pg
+    release_or_ref: chart:cloudnative-pg@0.27.1
+    source_commit: 5764894fe303e159a78e74de0f4537b4fe0076ad
+    status: planned
+  - component: cert-manager.io
+    source_type: upstream
+    source_ref: cert-manager/cert-manager
+    release_or_ref: chart:cert-manager@v1.19.4
+    source_commit: 97b0b0ec084758ef0ae73a12ea9a624349f4d27b
+    status: planned
+  - component: external-secrets.io
+    source_type: upstream
+    source_ref: external-secrets/external-secrets
+    release_or_ref: chart:external-secrets@2.0.1
+    source_commit: 03f08149abde12f917856ad0eefbfce0b0d0a55e
+    status: planned
+  - component: opentelemetry.io
+    source_type: upstream
+    source_ref: open-telemetry/opentelemetry-operator
+    release_or_ref: chart:opentelemetry-operator@0.106.0
+    source_commit: e7d0a55bb871edf0e54e28f593056a60cb48640e
+    status: planned
+  - component: keda.sh
+    source_type: upstream
+    source_ref: kedacore/keda
+    release_or_ref: chart:keda@2.19.0
+    source_commit: b0cf24c11f1a6e529669e4ff0533b15452ca6330
+    status: planned
+  - component: rollouts.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-rollouts
+    release_or_ref: dd8a4db3d5d053a90656490b648069bf63881133
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    path: manifests/crds
+    status: planned
+  - component: analysisruns.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-rollouts
+    release_or_ref: dd8a4db3d5d053a90656490b648069bf63881133
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    path: manifests/crds
+    status: planned
+  - component: analysistemplates.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-rollouts
+    release_or_ref: dd8a4db3d5d053a90656490b648069bf63881133
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    path: manifests/crds
+    status: planned
+  - component: clusteranalysistemplates.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-rollouts
+    release_or_ref: dd8a4db3d5d053a90656490b648069bf63881133
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    path: manifests/crds
+    status: planned
+  - component: experiments.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-rollouts
+    release_or_ref: dd8a4db3d5d053a90656490b648069bf63881133
+    source_commit: dd8a4db3d5d053a90656490b648069bf63881133
+    path: manifests/crds
+    status: planned
+  - component: eventbus.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-events
+    release_or_ref: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    source_commit: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    path: manifests/base/crds
+    status: planned
+  - component: eventsources.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-events
+    release_or_ref: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    source_commit: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    path: manifests/base/crds
+    status: planned
+  - component: sensors.argoproj.io
+    source_type: upstream
+    source_ref: argoproj/argo-events
+    release_or_ref: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    source_commit: f52ff16a737bca2fc10c794e00dd623017bc36bc
+    path: manifests/base/crds
+    status: planned
+  - component: serving.kserve.io
+    source_type: upstream
+    source_ref: kserve/kserve
+    release_or_ref: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    source_commit: af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3
+    path: config/crd/full
+    status: planned
+  - component: ray.io
+    source_type: upstream
+    source_ref: ray-project/kuberay
+    release_or_ref: chart:kuberay-operator@1.1.0
+    source_commit: 43aff0c59df32660663c4193e58ffc1d5a385a99
+    path: helm-chart/kuberay-operator/crds
+    status: planned

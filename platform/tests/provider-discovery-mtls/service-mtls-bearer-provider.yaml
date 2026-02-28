@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mtls-bearer-provider
+  labels:
+    app.kubernetes.io/name: mtls-bearer-provider
+    app.kubernetes.io/component: provider
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  selector:
+    app.kubernetes.io/name: mtls-bearer-provider
+    app.kubernetes.io/component: provider
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+  ports:
+    - name: https
+      port: 8443
+      targetPort: 8443

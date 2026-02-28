@@ -1,0 +1,36 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: aimxs-policy
+  namespace: epydios-system
+spec:
+  providerType: PolicyProvider
+  providerId: aimxs-policy
+  contractVersion: v1alpha1
+  endpoint:
+    url: https://aimxs-policy-provider.epydios-system.svc.cluster.local:8443
+    timeoutSeconds: 10
+  auth:
+    mode: MTLSAndBearerTokenSecret
+    bearerTokenSecretRef:
+      name: aimxs-policy-provider-auth
+      key: token
+    clientTLSSecretRef:
+      name: epydios-control-plane-client-tls
+    caSecretRef:
+      name: aimxs-policy-provider-ca
+  selection:
+    enabled: false
+    priority: 50
+    tenantSelector:
+      matchLabels:
+        aimxs.epydios.ai/enabled: "true"
+  advertisedCapabilities:
+    - policy.evaluate
+    - policy.validate_bundle
+    - governance.handshake_validation
+    - evidence.policy_decision_refs
+  annotations:
+    epydios.ai/licensing-mode: private-plugin
+    epydios.ai/activation: "enable after license and conformance validation"
+

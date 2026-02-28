@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - project-epydios-platform.yaml
+  - promotion-order.yaml
+  - apps/bootstrap/platform-base.yaml
+  - apps/platform/epydios-system-components.yaml
+  - apps/platform/epydios-control-plane-production.yaml
+  - apps/phase-00/cloudnative-pg.yaml
+  - apps/phase-00/cert-manager.yaml
+  - apps/phase-00/external-secrets.yaml
+  - apps/phase-00/gateway-api-crds.yaml
+  - apps/phase-01/opentelemetry-operator.yaml
+  - apps/phase-01/fluent-bit.yaml
+  - apps/phase-01/keda.yaml
+  - apps/phase-02/argo-rollouts.yaml
+  - apps/phase-02/argo-events.yaml
+  - apps/phase-03/kserve.yaml
+  - apps/phase-04/kuberay.yaml

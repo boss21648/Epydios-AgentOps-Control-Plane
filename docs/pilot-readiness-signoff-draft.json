@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "document_type": "pilot_readiness_signoff_draft",
+  "last_updated": "2026-02-27",
+  "status": "draft",
+  "milestone": "M8",
+  "evidence_items": [
+    {
+      "id": "m8_1_full_gate_strict",
+      "description": "Full strict gate pass with required M7/hardening/AIMXS/provenance checks",
+      "command": "GATE_MODE=full ./platform/ci/bin/pr-kind-phase03-gate.sh",
+      "status": "pass",
+      "artifacts": [
+        "platform/ci/bin/pr-kind-phase03-gate.sh",
+        ".github/workflows/pr-kind-phase03-gate.yml"
+      ]
+    },
+    {
+      "id": "m8_4_monitoring_alert_ops",
+      "description": "Monitoring stack operational with ServiceMonitor/PrometheusRule and alert firing path validation",
+      "commands": [
+        "./platform/local/bin/bootstrap-monitoring-stack.sh",
+        "./platform/local/bin/verify-monitoring-alerts.sh",
+        "REQUIRE_MONITORING_CRDS=1 RUN_MONITORING_ALERT_SMOKE=1 AUTO_INSTALL_MONITORING_STACK=0 ./platform/local/bin/verify-prod-hardening-baseline.sh"
+      ],
+      "status": "pass",
+      "artifacts": [
+        "platform/hardening/monitoring/",
+        "platform/local/bin/bootstrap-monitoring-stack.sh",
+        "platform/local/bin/verify-monitoring-alerts.sh",
+        "platform/ci/bin/run-gate-profile.sh",
+        "platform/ci/profiles/staging-full.env",
+        "platform/ci/profiles/prod-full.env",
+        "docs/runbooks/monitoring-ownership-rollout.md"
+      ],
+      "notes": [
+        "Validated locally on kind with Prometheus and Alertmanager API checks.",
+        "Staging/prod monitoring ownership and rollout policy are documented; environment adoption sign-off remains open."
+      ]
+    },
+    {
+      "id": "m8_3_hardening_baseline",
+      "description": "NetworkPolicies and rotation checks enforced in full gate path",
+      "command": "./platform/local/bin/verify-prod-hardening-baseline.sh",
+      "status": "pass",
+      "artifacts": [
+        "platform/hardening/networkpolicy/",
+        "platform/local/bin/verify-prod-hardening-baseline.sh",
+        "platform/local/bin/verify-secret-cert-rotation.sh"
+      ]
+    },
+    {
+      "id": "m8_5_reliability_required",
+      "description": "M7 integration + backup/restore + upgrade safety checks required and passing",
+      "commands": [
+        "./platform/local/bin/verify-m7-integration.sh",
+        "./platform/local/bin/verify-m7-cnpg-backup-restore.sh",
+        "./platform/local/bin/verify-m7-upgrade-safety.sh"
+      ],
+      "status": "pass",
+      "artifacts": [
+        "platform/local/bin/verify-m7-integration.sh",
+        "platform/local/bin/verify-m7-cnpg-backup-restore.sh",
+        "platform/local/bin/verify-m7-upgrade-safety.sh"
+      ]
+    },
+    {
+      "id": "m8_6_aimxs_boundary_partial",
+      "description": "AIMXS remains external via HTTPS and slot contract checks",
+      "command": "./platform/local/bin/verify-aimxs-boundary.sh",
+      "status": "pass",
+      "artifacts": [
+        "platform/local/bin/verify-aimxs-boundary.sh",
+        "platform/local/bin/verify-m10-aimxs-private-release.sh",
+        "internal/aimxs/slot.go",
+        "docs/aimxs-plugin-slot.md",
+        "examples/aimxs/extensionprovider-policy-mtls-bearer.yaml",
+        "provenance/aimxs/private-release-inputs.vars",
+        "provenance/aimxs/m10-2-private-release-evidence-latest.json",
+        "provenance/promotion/staging-full-gate-20260227T210037Z.log",
+        "provenance/promotion/staging-full-gate-20260227T210037Z.log.sha256",
+        "provenance/promotion/staging-full-gate-20260227T210037Z.log.proof.json"
+      ],
+      "notes": [
+        "First private AIMXS release evidence is archived (artifact digest mode) with strict staging profile proof.",
+        "Publication process remains codified in docs/runbooks/aimxs-private-sdk-publication.md."
+      ]
+    },
+    {
+      "id": "m8_2_release_evidence",
+      "description": "Real tag release evidence with digests/signing/SBOM/vuln gate",
+      "command": "Run .github/workflows/release-images-ghcr.yml on real tag",
+      "status": "pending",
+      "artifacts": [
+        ".github/workflows/release-images-ghcr.yml",
+        "release-image-digests",
+        "release-images-lockfile-sync"
+      ]
+    }
+  ],
+  "slos": [
+    {
+      "id": "slo_api_availability",
+      "target": "99.5%",
+      "window": "monthly",
+      "status": "draft"
+    },
+    {
+      "id": "slo_policy_evidence_success",
+      "target": ">=99%",
+      "window": "monthly",
+      "status": "draft"
+    },
+    {
+      "id": "slo_decision_latency_p95",
+      "target": "<=2.5s",
+      "window": "weekly",
+      "status": "draft"
+    },
+    {
+      "id": "slo_mttd_controller_outage",
+      "target": "<=5m",
+      "window": "rolling",
+      "status": "draft"
+    },
+    {
+      "id": "slo_backup_restore_drill",
+      "target": "pass each release candidate",
+      "window": "per-rc",
+      "status": "draft"
+    }
+  ],
+  "runbooks": [
+    "docs/runbooks/incident-triage.md",
+    "docs/runbooks/postgres-backup-restore.md",
+    "docs/aimxs-plugin-slot.md",
+    "docs/runbooks/monitoring-ownership-rollout.md",
+    "docs/runbooks/aimxs-private-sdk-publication.md"
+  ],
+  "approvals": {
+    "engineering_lead": "pending",
+    "security_lead": "pending",
+    "operations_lead": "pending",
+    "product_owner": "pending"
+  }
+}

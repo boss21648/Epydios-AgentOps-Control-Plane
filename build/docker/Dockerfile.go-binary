@@ -1,0 +1,27 @@
+ARG GO_VERSION=1.26
+
+FROM golang:${GO_VERSION} AS builder
+WORKDIR /src
+
+ARG TARGETOS=linux
+ARG TARGETARCH
+ARG TARGETVARIANT
+ARG BINARY_PACKAGE
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+COPY providers/ ./providers/
+
+RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH:-amd64}" GOARM="${TARGETVARIANT#v}" \
+    go build -trimpath -ldflags="-s -w" -o /out/app "${BINARY_PACKAGE}"
+
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates && adduser -D -H -u 65532 appuser
+WORKDIR /
+COPY --from=builder /out/app /app
+USER 65532:65532
+ENTRYPOINT ["/app"]
+

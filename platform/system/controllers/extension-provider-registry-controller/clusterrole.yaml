@@ -1,0 +1,36 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: epydios-extension-provider-registry-controller
+rules:
+  - apiGroups:
+      - controlplane.epydios.ai
+    resources:
+      - extensionproviders
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - controlplane.epydios.ai
+    resources:
+      - extensionproviders/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch

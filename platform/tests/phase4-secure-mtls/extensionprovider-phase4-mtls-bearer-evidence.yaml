@@ -1,0 +1,26 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: phase4-mtls-bearer-evidence
+spec:
+  providerType: EvidenceProvider
+  providerId: phase4-mtls-bearer-evidence-provider
+  contractVersion: v1alpha1
+  endpoint:
+    url: https://phase4-mtls-bearer-evidence-provider.epydios-system.svc.cluster.local:8443
+    timeoutSeconds: 5
+  auth:
+    mode: MTLSAndBearerTokenSecret
+    bearerTokenSecretRef:
+      name: mtls-bearer-client-token
+      key: token
+    clientTLSSecretRef:
+      name: epydios-controller-mtls-client
+    caSecretRef:
+      name: epydios-provider-ca
+  selection:
+    enabled: true
+    priority: 220
+  advertisedCapabilities:
+    - evidence.record
+    - evidence.finalize_bundle

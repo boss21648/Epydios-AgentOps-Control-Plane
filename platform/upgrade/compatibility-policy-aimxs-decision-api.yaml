@@ -1,0 +1,39 @@
+schema_version: 1
+component: aimxs-decision-api
+contract_version: v1
+compatibility_mode: additive_only
+required_endpoints:
+  - method: POST
+    path: /v1/decide
+  - method: GET
+    path: /v1/healthz
+required_decision_fields:
+  - decisionId
+  - decision
+required_decision_values:
+  - ALLOW
+  - DENY
+  - CHALLENGE
+  - DEFER
+grant_token_policy:
+  required_for_decisions:
+    - ALLOW
+    - CHALLENGE
+    - DEFER
+  accepted_response_paths:
+    - grantToken
+    - grant_token
+    - output.grantToken
+    - output.grant_token
+    - output.aimxsGrantToken
+    - output.aimxs_grant_token
+  ttl: short_lived
+  signed: recommended
+breaking_change_examples:
+  - remove endpoint /v1/decide
+  - rename decision field without additive alias
+  - remove ALLOW or DENY decision values
+  - stop returning grant token for non-DENY decisions when runtime grant enforcement is enabled
+notes:
+  - Keep AIMXS private implementation separate from OSS by enforcing only network/API compatibility at this boundary.
+  - Runtime enforcement knob is AUTHZ_REQUIRE_POLICY_GRANT.

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: epydios-oss-policy-provider
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: epydios-oss-policy-provider
+      app.kubernetes.io/component: provider
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: epydios-oss-policy-provider
+        app.kubernetes.io/component: provider
+        app.kubernetes.io/part-of: epydios-ai-control-plane
+    spec:
+      serviceAccountName: epydios-oss-policy-provider
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: policy-provider
+          image: ghcr.io/epydios/epydios-oss-policy-opa-provider:0.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - -listen=:8080
+            - -config=/config/config.json
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: adapter-config
+              mountPath: /config
+              readOnly: true
+        - name: opa
+          image: openpolicyagent/opa:0.67.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - run
+            - --server
+            - --addr=0.0.0.0:8181
+            - --set=decision_logs.console=true
+            - /policies
+          ports:
+            - name: opa-http
+              containerPort: 8181
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: opa-http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: opa-http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: opa-policies
+              mountPath: /policies
+              readOnly: true
+      volumes:
+        - name: adapter-config
+          configMap:
+            name: epydios-oss-policy-provider-config
+        - name: opa-policies
+          configMap:
+            name: epydios-oss-policy-opa-rego
+

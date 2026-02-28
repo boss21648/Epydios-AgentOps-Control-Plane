@@ -1,0 +1,525 @@
+name: Release Images (GHCR)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      source_root:
+        description: "Source root that contains cmd/, platform/, provenance/ (default: auto-detect . or EPYDIOS_AI_CONTROL_PLANE)"
+        required: false
+        type: string
+      image_tag:
+        description: "Image tag override (default: tag ref name, or manual-<sha>)"
+        required: false
+        type: string
+      registry_owner:
+        description: "GHCR owner/org (default: repository owner)"
+        required: false
+        type: string
+      platforms:
+        description: "Target platforms for buildx"
+        required: false
+        default: "linux/amd64,linux/arm64"
+        type: string
+      push_images:
+        description: "Push images to GHCR (disable for dry-run build validation)"
+        required: true
+        default: true
+        type: boolean
+      vuln_fail_severities:
+        description: "Comma-separated severities that fail the vulnerability gate"
+        required: false
+        default: "CRITICAL"
+        type: string
+      vuln_ignore_unfixed:
+        description: "Ignore unfixed vulnerabilities in gate evaluation"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  DOCKERFILE_RELATIVE: build/docker/Dockerfile.go-binary
+
+jobs:
+  build-and-push:
+    name: Build and Push (${{ matrix.component }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: epydios-extension-provider-registry-controller
+            binary_package: ./cmd/extension-provider-registry-controller
+          - component: epydios-oss-profile-static-resolver
+            binary_package: ./cmd/profile-resolver-provider
+          - component: epydios-control-plane-runtime
+            binary_package: ./cmd/control-plane-runtime
+          - component: epydios-oss-policy-opa-provider
+            binary_package: ./cmd/policy-provider-opa-adapter
+          - component: epydios-oss-evidence-memory-provider
+            binary_package: ./cmd/evidence-provider-memory
+          - component: epydios-mtls-capabilities-provider
+            binary_package: ./cmd/mtls-capabilities-provider
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve source root
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          requested_root="${{ github.event.inputs.source_root }}"
+          repo_lc="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+
+          # Safety: if this workflow is run from a non-control-plane repo, require explicit source_root.
+          if [ -z "${requested_root}" ] && [[ "${repo_lc}" != */epydios-ai-control-plane ]]; then
+            echo "::error::Workflow running in '${GITHUB_REPOSITORY}' (non-control-plane repo). Set workflow_dispatch input source_root=EPYDIOS_AI_CONTROL_PLANE or run this workflow in the control-plane repo." >&2
+            exit 1
+          fi
+
+          roots=()
+          if [ -n "${requested_root}" ]; then
+            roots+=("${requested_root}")
+          else
+            roots+=(".")
+            roots+=("EPYDIOS_AI_CONTROL_PLANE")
+          fi
+
+          selected=""
+          dockerfile=""
+          source_label=""
+          for root in "${roots[@]}"; do
+            candidate="${root%/}"
+            [ -n "${candidate}" ] || candidate="."
+            candidate_dockerfile="${candidate}/${{ env.DOCKERFILE_RELATIVE }}"
+            if [ -f "${candidate_dockerfile}" ] \
+              && [ -d "${candidate}/cmd" ] \
+              && [ -d "${candidate}/platform" ] \
+              && [ -d "${candidate}/provenance" ]; then
+              selected="${candidate}"
+              dockerfile="${candidate_dockerfile}"
+              source_label="${{ github.server_url }}/${{ github.repository }}"
+              if [ "${selected}" != "." ]; then
+                source_label="${source_label}/tree/${GITHUB_SHA}/${selected}"
+              fi
+              break
+            fi
+          done
+
+          if [ -z "${selected}" ]; then
+            echo "Unable to resolve source root for release build." >&2
+            echo "Checked roots: ${roots[*]}" >&2
+            echo "Expected: <root>/${{ env.DOCKERFILE_RELATIVE }}, <root>/cmd, <root>/platform, <root>/provenance" >&2
+            ls -la >&2
+            exit 1
+          fi
+
+          echo "source_root=${selected}" >>"${GITHUB_OUTPUT}"
+          echo "dockerfile=${dockerfile}" >>"${GITHUB_OUTPUT}"
+          echo "source_label=${source_label}" >>"${GITHUB_OUTPUT}"
+
+      - name: Validate component package path
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg="${{ matrix.binary_package }}"
+          pkg_rel="${pkg#./}"
+          pkg_path="${{ steps.source.outputs.source_root }}/${pkg_rel}"
+          if [ ! -d "${pkg_path}" ]; then
+            echo "Component package path not found: ${pkg_path}" >&2
+            exit 1
+          fi
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          owner="${{ github.event.inputs.registry_owner }}"
+          if [ -z "${owner}" ]; then
+            owner="${GITHUB_REPOSITORY_OWNER}"
+          fi
+          owner="$(echo "${owner}" | tr '[:upper:]' '[:lower:]')"
+
+          requested_tag="${{ github.event.inputs.image_tag }}"
+          if [ -n "${requested_tag}" ]; then
+            release_tag="${requested_tag}"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ] && [ -n "${GITHUB_REF_NAME}" ]; then
+            release_tag="${GITHUB_REF_NAME}"
+          else
+            release_tag="manual-${GITHUB_SHA::12}"
+          fi
+
+          lock_tag="${release_tag}"
+          if [[ "${lock_tag}" =~ ^v[0-9] ]]; then
+            lock_tag="${lock_tag#v}"
+          fi
+
+          push_images="true"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.push_images }}" != "true" ]; then
+            push_images="false"
+          fi
+
+          platforms="${{ github.event.inputs.platforms }}"
+          if [ -z "${platforms}" ]; then
+            platforms="linux/amd64,linux/arm64"
+          fi
+
+          vuln_fail_severities="${{ github.event.inputs.vuln_fail_severities }}"
+          if [ -z "${vuln_fail_severities}" ]; then
+            vuln_fail_severities="CRITICAL"
+          fi
+
+          vuln_ignore_unfixed="true"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.vuln_ignore_unfixed }}" != "true" ]; then
+            vuln_ignore_unfixed="false"
+          fi
+
+          image_repo="${{ env.REGISTRY }}/${owner}/${{ matrix.component }}"
+          tags="${image_repo}:${release_tag}"
+          if [ "${lock_tag}" != "${release_tag}" ]; then
+            tags="${tags},${image_repo}:${lock_tag}"
+          fi
+
+          echo "owner=${owner}" >>"${GITHUB_OUTPUT}"
+          echo "release_tag=${release_tag}" >>"${GITHUB_OUTPUT}"
+          echo "lock_tag=${lock_tag}" >>"${GITHUB_OUTPUT}"
+          echo "push_images=${push_images}" >>"${GITHUB_OUTPUT}"
+          echo "platforms=${platforms}" >>"${GITHUB_OUTPUT}"
+          echo "vuln_fail_severities=${vuln_fail_severities}" >>"${GITHUB_OUTPUT}"
+          echo "vuln_ignore_unfixed=${vuln_ignore_unfixed}" >>"${GITHUB_OUTPUT}"
+          echo "image_repo=${image_repo}" >>"${GITHUB_OUTPUT}"
+          echo "tags=${tags}" >>"${GITHUB_OUTPUT}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        if: steps.meta.outputs.push_images == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ steps.source.outputs.source_root }}
+          file: ${{ steps.source.outputs.dockerfile }}
+          build-args: |
+            BINARY_PACKAGE=${{ matrix.binary_package }}
+          platforms: ${{ steps.meta.outputs.platforms }}
+          push: ${{ steps.meta.outputs.push_images }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.source=${{ steps.source.outputs.source_label }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.lock_tag }}
+          provenance: false
+          sbom: false
+
+      - name: Enforce digest on pushed image
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${{ steps.build.outputs.digest }}" ]; then
+            echo "Expected non-empty digest for pushed image ${{ steps.meta.outputs.image_repo }}:${{ steps.meta.outputs.release_tag }}" >&2
+            exit 1
+          fi
+
+      - name: Install cosign
+        if: steps.meta.outputs.push_images == 'true'
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: v2.4.1
+
+      - name: Generate attestation predicate
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/attest
+          cat >"dist/attest/${{ matrix.component }}.predicate.json" <<EOF
+          {
+            "predicateType": "https://epydios.ai/attestations/release-image/v1",
+            "component": "${{ matrix.component }}",
+            "image": "${{ steps.meta.outputs.image_repo }}",
+            "release_tag": "${{ steps.meta.outputs.release_tag }}",
+            "lock_tag": "${{ steps.meta.outputs.lock_tag }}",
+            "digest": "${{ steps.build.outputs.digest }}",
+            "git": {
+              "repository": "${{ github.repository }}",
+              "commit": "${{ github.sha }}",
+              "ref": "${{ github.ref }}"
+            },
+            "workflow": {
+              "name": "${{ github.workflow }}",
+              "file": ".github/workflows/release-images-ghcr.yml",
+              "run_id": "${{ github.run_id }}",
+              "run_attempt": "${{ github.run_attempt }}"
+            }
+          }
+          EOF
+
+      - name: Sign image (keyless)
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
+          cosign sign --yes "${image_ref}"
+
+      - name: Verify image signature
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
+          cosign verify \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release-images-ghcr.yml@.*$" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${image_ref}" >"dist/attest/${{ matrix.component }}.signature.verify.json"
+
+      - name: Attest image (keyless)
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
+          cosign attest \
+            --yes \
+            --type "https://epydios.ai/attestations/release-image/v1" \
+            --predicate "dist/attest/${{ matrix.component }}.predicate.json" \
+            "${image_ref}"
+
+      - name: Verify image attestation
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
+          cosign verify-attestation \
+            --type "https://epydios.ai/attestations/release-image/v1" \
+            --certificate-identity-regexp "^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release-images-ghcr.yml@.*$" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "${image_ref}" >"dist/attest/${{ matrix.component }}.attestation.verify.json"
+
+      - name: Generate SBOM (SPDX-JSON)
+        if: steps.meta.outputs.push_images == 'true'
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: dist/security/${{ matrix.component }}.sbom.spdx.json
+
+      - name: Vulnerability Gate (Trivy)
+        if: steps.meta.outputs.push_images == 'true'
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: dist/security/${{ matrix.component }}.trivy.json
+          severity: ${{ steps.meta.outputs.vuln_fail_severities }}
+          ignore-unfixed: ${{ steps.meta.outputs.vuln_ignore_unfixed }}
+          scanners: vuln
+          vuln-type: os,library
+          exit-code: 1
+
+      - name: Publish component digest artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/digests
+          signed="false"
+          signature_verified="false"
+          attested="false"
+          attestation_verified="false"
+          sbom_generated="false"
+          vulnerability_scan_passed="false"
+          if [ "${{ steps.meta.outputs.push_images }}" = "true" ]; then
+            signed="true"
+            signature_verified="true"
+            attested="true"
+            attestation_verified="true"
+            sbom_generated="true"
+            vulnerability_scan_passed="true"
+          fi
+          cat >"dist/digests/${{ matrix.component }}.json" <<EOF
+          {
+            "component": "${{ matrix.component }}",
+            "image": "${{ steps.meta.outputs.image_repo }}",
+            "release_tag": "${{ steps.meta.outputs.release_tag }}",
+            "lock_tag": "${{ steps.meta.outputs.lock_tag }}",
+            "tag_ref": "${{ steps.meta.outputs.image_repo }}:${{ steps.meta.outputs.lock_tag }}",
+            "digest_ref": "${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}",
+            "digest": "${{ steps.build.outputs.digest }}",
+            "pushed": ${{ steps.meta.outputs.push_images }},
+            "signed": ${signed},
+            "signature_verified": ${signature_verified},
+            "attested": ${attested},
+            "attestation_verified": ${attestation_verified},
+            "sbom_generated": ${sbom_generated},
+            "sbom_format": "spdx-json",
+            "vulnerability_scan_passed": ${vulnerability_scan_passed},
+            "vulnerability_scan_tool": "trivy",
+            "vulnerability_gate_severities": "${{ steps.meta.outputs.vuln_fail_severities }}",
+            "vulnerability_ignore_unfixed": ${{ steps.meta.outputs.vuln_ignore_unfixed }},
+            "platforms": "${{ steps.meta.outputs.platforms }}",
+            "commit": "${{ github.sha }}"
+          }
+          EOF
+
+      - name: Upload component digest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-digest-${{ matrix.component }}
+          path: |
+            dist/digests/${{ matrix.component }}.json
+            dist/attest/${{ matrix.component }}.predicate.json
+            dist/attest/${{ matrix.component }}.signature.verify.json
+            dist/attest/${{ matrix.component }}.attestation.verify.json
+            dist/security/${{ matrix.component }}.sbom.spdx.json
+            dist/security/${{ matrix.component }}.trivy.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  aggregate-digests:
+    name: Aggregate Release Digests
+    runs-on: ubuntu-24.04
+    needs: build-and-push
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve source root
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          requested_root="${{ github.event.inputs.source_root }}"
+          repo_lc="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+
+          # Safety: if this workflow is run from a non-control-plane repo, require explicit source_root.
+          if [ -z "${requested_root}" ] && [[ "${repo_lc}" != */epydios-ai-control-plane ]]; then
+            echo "::error::Workflow running in '${GITHUB_REPOSITORY}' (non-control-plane repo). Set workflow_dispatch input source_root=EPYDIOS_AI_CONTROL_PLANE or run this workflow in the control-plane repo." >&2
+            exit 1
+          fi
+
+          roots=()
+          if [ -n "${requested_root}" ]; then
+            roots+=("${requested_root}")
+          else
+            roots+=(".")
+            roots+=("EPYDIOS_AI_CONTROL_PLANE")
+          fi
+
+          selected=""
+          for root in "${roots[@]}"; do
+            candidate="${root%/}"
+            [ -n "${candidate}" ] || candidate="."
+            if [ -d "${candidate}/platform" ] && [ -d "${candidate}/provenance" ] && [ -d "${candidate}/cmd" ]; then
+              selected="${candidate}"
+              break
+            fi
+          done
+
+          if [ -z "${selected}" ]; then
+            echo "Unable to resolve source root for digest aggregation." >&2
+            echo "Checked roots: ${roots[*]}" >&2
+            ls -la >&2
+            exit 1
+          fi
+
+          echo "source_root=${selected}" >>"${GITHUB_OUTPUT}"
+
+      - name: Download digest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-digest-*
+          path: dist/digests
+          merge-multiple: true
+
+      - name: Build digest manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          jq -s 'sort_by(.component)' dist/digests/*.json > dist/release-image-digests.json
+
+          jq -r '
+            .[] |
+            "- \(.component): \(.digest_ref) (pushed=\(.pushed), signed=\(.signed), attested=\(.attested))"
+          ' dist/release-image-digests.json > dist/release-image-digests.md
+
+          {
+            echo "## Release Image Digests"
+            echo
+            cat dist/release-image-digests.md
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Sync images.lock.yaml from release digest manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          src_root="${{ steps.source.outputs.source_root }}"
+          mkdir -p dist/provenance
+          cp "${src_root}/provenance/images.lock.yaml" dist/provenance/images.lock.yaml
+
+          DIGEST_MANIFEST=dist/release-image-digests.json \
+          LOCKFILE=dist/provenance/images.lock.yaml \
+          UPDATE_STATUS=release-synced \
+            "${src_root}/platform/ci/bin/sync-release-digests-to-lockfile.sh"
+
+          diff -u "${src_root}/provenance/images.lock.yaml" dist/provenance/images.lock.yaml > dist/provenance/images.lock.diff || true
+
+      - name: Validate synced lockfile in strict mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          src_root="${{ steps.source.outputs.source_root }}"
+          mkdir -p dist/repo-root/provenance
+          cp "${src_root}/provenance/charts.lock.yaml" dist/repo-root/provenance/charts.lock.yaml
+          cp "${src_root}/provenance/crds.lock.yaml" dist/repo-root/provenance/crds.lock.yaml
+          cp "${src_root}/provenance/licenses.lock.yaml" dist/repo-root/provenance/licenses.lock.yaml
+          cp dist/provenance/images.lock.yaml dist/repo-root/provenance/images.lock.yaml
+          (
+            cd "${src_root}"
+            go run ./cmd/provenance-lock-check -strict -repo-root "${GITHUB_WORKSPACE}/dist/repo-root"
+          )
+
+      - name: Upload synced lockfile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-images-lockfile-sync
+          path: |
+            dist/provenance/images.lock.yaml
+            dist/provenance/images.lock.diff
+          retention-days: 30
+
+      - name: Upload release digest manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-image-digests
+          path: |
+            dist/release-image-digests.json
+            dist/release-image-digests.md
+          retention-days: 30

@@ -1,0 +1,22 @@
+apiVersion: controlplane.epydios.ai/v1alpha1
+kind: ExtensionProvider
+metadata:
+  name: m10-bearer-profile
+spec:
+  providerType: ProfileResolver
+  providerId: m10-bearer-profile
+  contractVersion: v1alpha1
+  endpoint:
+    url: http://oss-profile-static-resolver.epydios-system.svc.cluster.local:8080
+    timeoutSeconds: 5
+  auth:
+    mode: BearerTokenSecret
+    bearerTokenSecretRef:
+      name: m10-bearer-auth
+      key: token
+  selection:
+    enabled: false
+    priority: 1
+  advertisedCapabilities:
+    - profile.resolve
+

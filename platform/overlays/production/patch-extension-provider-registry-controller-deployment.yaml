@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: extension-provider-registry-controller
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: controller
+          args:
+            - --metrics-bind-address=:8080
+            - --health-probe-bind-address=:8081
+            - --leader-elect=true

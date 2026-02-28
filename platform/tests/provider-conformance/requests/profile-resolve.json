@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "requestId": "m10-profile-resolve-001",
+    "timestamp": "2026-02-27T00:00:00Z",
+    "tenantId": "tenant-alpha",
+    "projectId": "project-a",
+    "environment": "dev"
+  },
+  "task": {
+    "kind": "inference",
+    "sensitivity": "standard"
+  },
+  "defaults": {
+    "profileId": "EPYDIOS_PROFILE_BASELINE_V1"
+  },
+  "context": {
+    "source": "m10-conformance"
+  }
+}
+

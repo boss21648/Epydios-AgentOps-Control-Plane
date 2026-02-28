@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orchestration-runtime
+  labels:
+    app.kubernetes.io/name: orchestration-runtime
+    app.kubernetes.io/component: runtime
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orchestration-runtime
+      app.kubernetes.io/component: runtime

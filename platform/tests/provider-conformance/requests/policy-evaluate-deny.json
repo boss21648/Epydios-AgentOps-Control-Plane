@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "requestId": "m10-policy-deny-001",
+    "timestamp": "2026-02-27T00:00:00Z",
+    "tenantId": "tenant-alpha",
+    "projectId": "project-a",
+    "environment": "prod"
+  },
+  "subject": {
+    "type": "user",
+    "id": "alice",
+    "attributes": {
+      "approvedForProd": false
+    }
+  },
+  "action": {
+    "verb": "delete",
+    "target": "task"
+  },
+  "resource": {
+    "kind": "Task",
+    "namespace": "epydios-system",
+    "name": "demo-task"
+  },
+  "mode": "enforce"
+}
+
