@@ -449,7 +449,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          jq -s 'sort_by(.component)' dist/digests/*.json > dist/release-image-digests.json
+          mapfile -t digest_files < <(find dist/digests -type f -name '*.json' -print | sort)
+          if [ "${#digest_files[@]}" -eq 0 ]; then
+            echo "No JSON artifacts found under dist/digests after download." >&2
+            find dist -maxdepth 5 -type f -print >&2 || true
+            exit 1
+          fi
+
+          jq -s '
+            map(select(type == "object" and has("component") and has("digest_ref"))) |
+            sort_by(.component)
+          ' "${digest_files[@]}" > dist/release-image-digests.json
+
+          if [ "$(jq 'length' dist/release-image-digests.json)" -eq 0 ]; then
+            echo "No component digest records found in downloaded JSON artifacts." >&2
+            find dist/digests -maxdepth 6 -type f -name '*.json' -print >&2 || true
+            exit 1
+          fi
 
           jq -r '
             .[] |
