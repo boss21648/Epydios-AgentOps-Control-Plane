@@ -2,8 +2,6 @@
 
 `Epydios AgentOps Control Plane` is the open-source Kubernetes control plane for AI/agent workloads, governance, and platform operations.
 
-`AIOS` can remain the umbrella vision/codename. The OSS product name stays specific and accurate: a control plane, not a full operating system.
-
 ## Scope (Current Phase)
 
 This repository is for the enterprise Kubernetes control plane baseline:
