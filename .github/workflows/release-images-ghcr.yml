@@ -315,6 +315,13 @@ jobs:
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             "${image_ref}" >"dist/attest/${{ matrix.component }}.attestation.verify.json"
 
+      - name: Prepare security artifact directories
+        if: steps.meta.outputs.push_images == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/security
+
       - name: Generate SBOM (SPDX-JSON)
         if: steps.meta.outputs.push_images == 'true'
         uses: anchore/sbom-action@v0
