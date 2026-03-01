@@ -1,7 +1,7 @@
 # Pilot Readiness Sign-off (Draft)
 
-Last updated: 2026-02-27  
-Status: Draft (M8.7 in progress)
+Last updated: 2026-03-01  
+Status: Ready for Approval (evidence complete, approvals pending)
 
 ## Scope
 
@@ -37,6 +37,10 @@ It is the human-facing companion to `docs/pilot-readiness-signoff-draft.json`.
      - `PROFILE=staging-full ./platform/ci/bin/run-gate-profile.sh`
    - Must include: private SDK/provider digest evidence plus strict staging profile pass.
    - Status: `pass` (artifact-mode private release evidence + staging strict proof archived).
+7. Real tag release evidence pass (M8.2 / M11 release closure)
+   - Command: `.github/workflows/release-images-ghcr.yml` on real tag (`v0.1.0`)
+   - Must include: release digest artifacts, lockfile sync artifact, ingest + strict lock verification.
+   - Status: `pass` (artifacts archived under `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-image-digests/`, `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-images-lockfile-sync/`, and `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/`).
 
 ## Draft SLOs (Pilot)
 
@@ -64,5 +68,5 @@ It is the human-facing companion to `docs/pilot-readiness-signoff-draft.json`.
 
 ## Open Items Before Final Sign-off
 
-1. Real release-run evidence from `release-images-ghcr.yml` (M8.2).
-2. Staging/prod adoption sign-off using `staging-full` and `prod-full` profiles.
+1. Formal approvals from Engineering, Security, Operations, and Product owners.
+2. Monitoring ownership adoption sign-off in target staging/prod environments (if operated by separate teams).

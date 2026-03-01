@@ -4,6 +4,24 @@ This directory holds lightweight lockfiles that should be updated as components 
 
 The goal is to start provenance tracking now and tighten enforcement later.
 
+## Non-GitHub Artifact Boundary
+
+Raw release/promotion evidence artifacts are intentionally kept outside this repo tree to avoid
+publishing operational logs or private AIMXS evidence by accident.
+
+Default external location:
+
+```bash
+../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/
+```
+
+Keep these in-repo files as authoritative sources:
+- `images.lock.yaml`
+- `charts.lock.yaml`
+- `crds.lock.yaml`
+- `licenses.lock.yaml`
+- `aimxs/README.md` (boundary/process documentation only)
+
 ## Validation Gate
 
 Run lockfile validation in development mode (structure and pin sanity, warnings for unresolved release data):

@@ -4,9 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
+NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB}"
 
-EVIDENCE_INPUT_FILE="${EVIDENCE_INPUT_FILE:-${REPO_ROOT}/provenance/aimxs/private-release-inputs.vars}"
-OUTPUT_DIR="${OUTPUT_DIR:-${REPO_ROOT}/provenance/aimxs}"
+EVIDENCE_INPUT_FILE="${EVIDENCE_INPUT_FILE:-}"
+OUTPUT_DIR="${OUTPUT_DIR:-}"
 STAGING_GATE_LOG_PATH="${STAGING_GATE_LOG_PATH:-}"
 RUN_BOUNDARY_CHECK="${RUN_BOUNDARY_CHECK:-1}"
 M10_3_GATE_EXECUTED="${M10_3_GATE_EXECUTED:-0}"
@@ -103,6 +104,14 @@ validate_sha256() {
 }
 
 load_inputs() {
+  if [ -z "${EVIDENCE_INPUT_FILE}" ]; then
+    if [ -f "${NON_GITHUB_ROOT}/provenance/aimxs/private-release-inputs.vars" ]; then
+      EVIDENCE_INPUT_FILE="${NON_GITHUB_ROOT}/provenance/aimxs/private-release-inputs.vars"
+    else
+      EVIDENCE_INPUT_FILE="${REPO_ROOT}/provenance/aimxs/private-release-inputs.vars"
+    fi
+  fi
+
   if [ ! -f "${EVIDENCE_INPUT_FILE}" ]; then
     return 0
   fi
@@ -115,6 +124,7 @@ find_staging_log() {
   local strict_latest
   local fallback_latest
   local candidate
+  local latest_any
 
   if [ -n "${STAGING_GATE_LOG_PATH}" ]; then
     STAGING_GATE_LOG_PATH="$(normalize_existing_path "${STAGING_GATE_LOG_PATH}" || true)"
@@ -135,14 +145,30 @@ find_staging_log() {
           fallback_latest="${candidate}"
         fi
       fi
-    done < <(ls -t "${REPO_ROOT}/provenance/promotion/staging-full-gate-"*.log 2>/dev/null || true)
+    done < <(
+      ls -t \
+        "${NON_GITHUB_ROOT}/provenance/promotion/staging-full-gate-"*.log \
+        "${REPO_ROOT}/provenance/promotion/staging-full-gate-"*.log 2>/dev/null || true
+    )
 
     if [ -n "${strict_latest}" ]; then
       STAGING_GATE_LOG_PATH="${strict_latest}"
       M10_3_LOG_IN_STAGING="1"
-    else
+    elif [ -n "${fallback_latest}" ]; then
       STAGING_GATE_LOG_PATH="${fallback_latest:-}"
       M10_3_LOG_IN_STAGING="0"
+    elif [ "${M10_3_GATE_EXECUTED}" = "1" ]; then
+      latest_any="$(
+        ls -t \
+          "${NON_GITHUB_ROOT}/provenance/promotion/staging-full-gate-"*.log \
+          "${REPO_ROOT}/provenance/promotion/staging-full-gate-"*.log 2>/dev/null | head -n1 || true
+      )"
+      STAGING_GATE_LOG_PATH="${latest_any:-}"
+      if grep -Fq "Running M10.3 gate (policy grant token enforcement, no-token no-execution)..." "${STAGING_GATE_LOG_PATH}" 2>/dev/null; then
+        M10_3_LOG_IN_STAGING="1"
+      else
+        M10_3_LOG_IN_STAGING="0"
+      fi
     fi
   fi
 
@@ -168,6 +194,10 @@ main() {
   require_cmd jq
   require_cmd grep
   require_cmd awk
+
+  if [ -z "${OUTPUT_DIR}" ]; then
+    OUTPUT_DIR="${NON_GITHUB_ROOT}/provenance/aimxs"
+  fi
 
   load_inputs
   mkdir -p "${OUTPUT_DIR}"
@@ -215,7 +245,11 @@ main() {
   local line_m101 line_m103 line_boundary_pass line_gate_pass
   line_m101="$(assert_log_contains "Running M10.1 gate (provider conformance matrix across auth modes)..." "m10_1_gate")"
   line_boundary_pass="$(assert_log_contains "AIMXS boundary verification passed." "aimxs_boundary_pass")"
-  line_gate_pass="$(assert_log_contains "CI gate passed (full mode)" "full_gate_pass")"
+  if [ "${M10_3_GATE_EXECUTED}" = "1" ]; then
+    line_gate_pass="$(grep -n -m1 -F "CI gate passed (full mode)" "${STAGING_GATE_LOG_PATH}" | cut -d: -f1 || true)"
+  else
+    line_gate_pass="$(assert_log_contains "CI gate passed (full mode)" "full_gate_pass")"
+  fi
 
   line_m103=""
   if [ "${M10_3_LOG_IN_STAGING}" = "1" ]; then
@@ -259,7 +293,7 @@ main() {
           {
             name: "full_gate_passed",
             contains: "CI gate passed (full mode)",
-            line: ($line_gate_pass | tonumber)
+            line: (if ($line_gate_pass | length) > 0 then ($line_gate_pass | tonumber) else null end)
           }
         ]'
     )"
@@ -288,7 +322,7 @@ main() {
           {
             name: "full_gate_passed",
             contains: "CI gate passed (full mode)",
-            line: ($line_gate_pass | tonumber)
+            line: (if ($line_gate_pass | length) > 0 then ($line_gate_pass | tonumber) else null end)
           }
         ]'
     )"

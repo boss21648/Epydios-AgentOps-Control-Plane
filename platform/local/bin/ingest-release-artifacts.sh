@@ -3,12 +3,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
+NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB}"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-}"
 DIGEST_MANIFEST_BASENAME="${DIGEST_MANIFEST_BASENAME:-release-image-digests.json}"
 REQUIRE_PUSHED="${REQUIRE_PUSHED:-1}"
 UPDATE_STATUS="${UPDATE_STATUS:-release-synced}"
-ARCHIVE_DIR="${ARCHIVE_DIR:-${REPO_ROOT}/provenance/releases}"
+ARCHIVE_DIR="${ARCHIVE_DIR:-${NON_GITHUB_ROOT}/provenance/releases}"
 
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -26,7 +28,7 @@ Required input:
   - ARTIFACT_DIR containing ${DIGEST_MANIFEST_BASENAME}
 
 What this does:
-  1) Archives release artifacts to provenance/releases/<timestamp>/
+  1) Archives release artifacts to EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/<timestamp>/ by default
   2) Syncs provenance/images.lock.yaml from release digest manifest
   3) Runs strict provenance lock verification
 EOF

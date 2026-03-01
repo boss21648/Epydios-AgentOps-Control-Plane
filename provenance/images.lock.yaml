@@ -140,7 +140,7 @@ images:
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-extension-provider-registry-controller
     tag: "0.1.0"
-    digest: sha256:348e4bcc305ccfad7a71597f917d3b663596615b7ecf08b7946225a88cef2661
+    digest: sha256:f2376d136d7327305ff42efa2f73c4f9504fee0cb3c8fcd6d96b81ffbc8faeb5
     source: epydios-ai-control-plane
     source_path: cmd/extension-provider-registry-controller
     manifest_paths:
@@ -150,12 +150,12 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: true
-    status: planned
+    status: release-synced
   - component: epydios-oss-profile-static-resolver
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-oss-profile-static-resolver
     tag: "0.1.0"
-    digest: sha256:523d9cb198cd040c288c9fee82651b44a32be85b1bb9755f88bb06a64c3b2154
+    digest: sha256:c1d71bdee2ce773692d4022f7d6408da189b16573eb6590f5f9b3cdbe03c2171
     source: epydios-ai-control-plane
     source_path: cmd/profile-resolver-provider
     manifest_paths:
@@ -166,12 +166,12 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: true
-    status: planned
+    status: release-synced
   - component: epydios-control-plane-runtime
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-control-plane-runtime
     tag: "0.1.0"
-    digest: sha256:babbddab65e14b247cc14a902ecb71430bb9b4161e8d925cbe50ce3417953078
+    digest: sha256:65ef3defe7d3fc990f8118f9ee52b17965302f30ea0eeea9278c1b27361cf1b1
     source: epydios-ai-control-plane
     source_path: cmd/control-plane-runtime
     manifest_paths:
@@ -181,12 +181,12 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Replace digest with published immutable digest before release sign-off.
     required: true
-    status: validated-local
+    status: release-synced
   - component: epydios-oss-policy-opa-provider
     phase: phase-02-oss-policy-provider
     image: ghcr.io/epydios/epydios-oss-policy-opa-provider
     tag: "0.1.0"
-    digest: sha256:2c8d4d7d8602c740c29e7e761b6559bde2e01dd88fba35570656f91044f9eb19
+    digest: sha256:ef0d3e81371a02fd78c82f312ca7b0b25b241718d9a5350d7534361eb532b44a
     source: epydios-ai-control-plane
     source_path: cmd/policy-provider-opa-adapter
     manifest_paths:
@@ -196,12 +196,12 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
-    status: planned
+    status: release-synced
   - component: epydios-oss-evidence-memory-provider
     phase: phase-02-oss-evidence-provider
     image: ghcr.io/epydios/epydios-oss-evidence-memory-provider
     tag: "0.1.0"
-    digest: sha256:e7def99b2aaa5252152050f11ba11b88c110d3b0cfce7fd2604472b01b08f850
+    digest: sha256:ee30c7812d8e26c70118021a96cffc995118b8b5585967e6fbcdfafb8d3b80ea
     source: epydios-ai-control-plane
     source_path: cmd/evidence-provider-memory
     manifest_paths:
@@ -211,12 +211,12 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
-    status: planned
+    status: release-synced
   - component: epydios-mtls-capabilities-provider
     phase: phase-02-mtls-provider-discovery
     image: ghcr.io/epydios/epydios-mtls-capabilities-provider
     tag: "0.1.0"
-    digest: sha256:91ab9fabd0863cd1ce7522ddb91224693593bb8306682c3328b33f284a76bd32
+    digest: sha256:8d026d286d9fa58a3544bfdd74aa9ea0d7818aa09a3e74913378111379eab5c9
     source: epydios-ai-control-plane
     source_path: cmd/mtls-capabilities-provider
     manifest_paths:
@@ -227,7 +227,7 @@ images:
       - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
-    status: planned
+    status: release-synced
   - component: opa-sidecar
     phase: phase-02-oss-policy-provider
     image: openpolicyagent/opa

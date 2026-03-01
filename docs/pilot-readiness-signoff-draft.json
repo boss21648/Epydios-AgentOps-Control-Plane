@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "document_type": "pilot_readiness_signoff_draft",
-  "last_updated": "2026-02-27",
-  "status": "draft",
-  "milestone": "M8",
+  "last_updated": "2026-03-01",
+  "status": "ready_for_approval",
+  "milestone": "M8-M11",
   "evidence_items": [
     {
       "id": "m8_1_full_gate_strict",
@@ -75,11 +75,11 @@
         "internal/aimxs/slot.go",
         "docs/aimxs-plugin-slot.md",
         "examples/aimxs/extensionprovider-policy-mtls-bearer.yaml",
-        "provenance/aimxs/private-release-inputs.vars",
-        "provenance/aimxs/m10-2-private-release-evidence-latest.json",
-        "provenance/promotion/staging-full-gate-20260227T210037Z.log",
-        "provenance/promotion/staging-full-gate-20260227T210037Z.log.sha256",
-        "provenance/promotion/staging-full-gate-20260227T210037Z.log.proof.json"
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/private-release-inputs.vars",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-latest.json",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json"
       ],
       "notes": [
         "First private AIMXS release evidence is archived (artifact digest mode) with strict staging profile proof.",
@@ -89,12 +89,24 @@
     {
       "id": "m8_2_release_evidence",
       "description": "Real tag release evidence with digests/signing/SBOM/vuln gate",
-      "command": "Run .github/workflows/release-images-ghcr.yml on real tag",
-      "status": "pending",
+      "command": ".github/workflows/release-images-ghcr.yml on real tag v0.1.0",
+      "status": "pass",
       "artifacts": [
         ".github/workflows/release-images-ghcr.yml",
-        "release-image-digests",
-        "release-images-lockfile-sync"
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-image-digests/",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-images-lockfile-sync/",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/",
+        "provenance/images.lock.yaml",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.sha256",
+        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.proof.json"
+      ],
+      "notes": [
+        "Release artifacts imported and lockfile ingested via platform/local/bin/ingest-release-artifacts.sh.",
+        "Strict lock validation and strict staging/prod profile runs passed."
       ]
     }
   ],
@@ -137,6 +149,12 @@
     "docs/runbooks/monitoring-ownership-rollout.md",
     "docs/runbooks/aimxs-private-sdk-publication.md"
   ],
+  "evidence": {
+    "release_tag": "v0.1.0",
+    "release_artifact_bundle": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/",
+    "latest_staging_profile_log": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+    "latest_prod_profile_log": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log"
+  },
   "approvals": {
     "engineering_lead": "pending",
     "security_lead": "pending",

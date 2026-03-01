@@ -21,6 +21,12 @@ provenance/promotion/*
 !provenance/promotion/.gitkeep
 provenance/c0-cleanup/*
 !provenance/c0-cleanup/.gitkeep
+provenance/release-image-digests/*
+!provenance/release-image-digests/.gitkeep
+provenance/release-images-lockfile-sync/*
+!provenance/release-images-lockfile-sync/.gitkeep
+provenance/releases/*
+!provenance/releases/.gitkeep
 provenance/aimxs/*.json
 provenance/aimxs/*.sha256
 provenance/aimxs/*.vars
