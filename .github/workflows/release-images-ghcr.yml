@@ -322,44 +322,109 @@ jobs:
           set -euo pipefail
           mkdir -p dist/security
 
-      - name: Generate SBOM (SPDX-JSON)
-        if: steps.meta.outputs.push_images == 'true'
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}
-          format: spdx-json
-          output-file: dist/security/${{ matrix.component }}.sbom.spdx.json
-
-      - name: Install Trivy (standalone binary)
+      - name: Generate SBOM (SPDX-JSON via Syft container)
         if: steps.meta.outputs.push_images == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          trivy_version="0.65.0"
-          archive="trivy_${trivy_version}_Linux-64bit.tar.gz"
-          url="https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/${archive}"
-          install_dir="${RUNNER_TEMP}/trivy-bin"
-          mkdir -p "${install_dir}"
-          curl -fsSL "${url}" -o "${RUNNER_TEMP}/${archive}"
-          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${install_dir}" trivy
-          chmod +x "${install_dir}/trivy"
-          echo "${install_dir}" >> "${GITHUB_PATH}"
-          "${install_dir}/trivy" --version
 
-      - name: Vulnerability Gate (Trivy CLI)
+          retry_pull() {
+            local image="$1"
+            local max_attempts=5
+            local attempt
+            for attempt in $(seq 1 "${max_attempts}"); do
+              if docker pull "${image}" >/dev/null 2>&1; then
+                return 0
+              fi
+              if [ "${attempt}" -eq "${max_attempts}" ]; then
+                echo "Failed to pull ${image} after ${max_attempts} attempts" >&2
+                return 1
+              fi
+              sleep $((attempt * 5))
+            done
+          }
+          select_image() {
+            local selected=""
+            local candidate
+            for candidate in "$@"; do
+              if retry_pull "${candidate}"; then
+                selected="${candidate}"
+                break
+              fi
+            done
+            if [ -z "${selected}" ]; then
+              echo "Unable to pull any candidate image: $*" >&2
+              return 1
+            fi
+            echo "${selected}"
+          }
+
+          image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
+          sbom_out="dist/security/${{ matrix.component }}.sbom.spdx.json"
+          syft_image="$(select_image anchore/syft:v1.42.1 ghcr.io/anchore/syft:v1.42.1)"
+
+          retry_pull "${image_ref}"
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            "${syft_image}" \
+            "docker:${image_ref}" \
+            -o spdx-json > "${sbom_out}"
+
+          test -s "${sbom_out}"
+
+      - name: Vulnerability Gate (Trivy container)
         if: steps.meta.outputs.push_images == 'true'
         shell: bash
         run: |
           set -euo pipefail
+          retry_pull() {
+            local image="$1"
+            local max_attempts=5
+            local attempt
+            for attempt in $(seq 1 "${max_attempts}"); do
+              if docker pull "${image}" >/dev/null 2>&1; then
+                return 0
+              fi
+              if [ "${attempt}" -eq "${max_attempts}" ]; then
+                echo "Failed to pull ${image} after ${max_attempts} attempts" >&2
+                return 1
+              fi
+              sleep $((attempt * 5))
+            done
+          }
+          select_image() {
+            local selected=""
+            local candidate
+            for candidate in "$@"; do
+              if retry_pull "${candidate}"; then
+                selected="${candidate}"
+                break
+              fi
+            done
+            if [ -z "${selected}" ]; then
+              echo "Unable to pull any candidate image: $*" >&2
+              return 1
+            fi
+            echo "${selected}"
+          }
+
           image_ref="${{ steps.meta.outputs.image_repo }}@${{ steps.build.outputs.digest }}"
           ignore_unfixed_flag=""
           if [ "${{ steps.meta.outputs.vuln_ignore_unfixed }}" = "true" ]; then
             ignore_unfixed_flag="--ignore-unfixed"
           fi
 
-          trivy image \
+          trivy_image="$(select_image aquasec/trivy:0.67.2 ghcr.io/aquasecurity/trivy:0.67.2)"
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "${PWD}/dist/security:/out" \
+            "${trivy_image}" \
+            image \
+            --image-src docker \
             --format json \
-            --output "dist/security/${{ matrix.component }}.trivy.json" \
+            --output "/out/${{ matrix.component }}.trivy.json" \
             --scanners vuln \
             --vuln-type os,library \
             --severity "${{ steps.meta.outputs.vuln_fail_severities }}" \
