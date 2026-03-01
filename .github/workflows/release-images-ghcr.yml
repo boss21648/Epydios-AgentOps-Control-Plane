@@ -330,9 +330,21 @@ jobs:
           format: spdx-json
           output-file: dist/security/${{ matrix.component }}.sbom.spdx.json
 
-      - name: Install Trivy
+      - name: Install Trivy (standalone binary)
         if: steps.meta.outputs.push_images == 'true'
-        uses: aquasecurity/setup-trivy@e6c2c5e321ed9123bda567646e2f96565e34abe1
+        shell: bash
+        run: |
+          set -euo pipefail
+          trivy_version="0.65.0"
+          archive="trivy_${trivy_version}_Linux-64bit.tar.gz"
+          url="https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/${archive}"
+          install_dir="${RUNNER_TEMP}/trivy-bin"
+          mkdir -p "${install_dir}"
+          curl -fsSL "${url}" -o "${RUNNER_TEMP}/${archive}"
+          tar -xzf "${RUNNER_TEMP}/${archive}" -C "${install_dir}" trivy
+          chmod +x "${install_dir}/trivy"
+          echo "${install_dir}" >> "${GITHUB_PATH}"
+          "${install_dir}/trivy" --version
 
       - name: Vulnerability Gate (Trivy CLI)
         if: steps.meta.outputs.push_images == 'true'
