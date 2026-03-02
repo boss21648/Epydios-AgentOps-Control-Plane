@@ -12,7 +12,7 @@ This overlay composes production-oriented defaults on top of the baseline contro
   - ingress policies for runtime/providers
   - runtime egress policy (providers + Postgres + DNS + HTTPS endpoints)
   - admission policy for immutable digest image references (namespace-scoped)
-  - runtime ServiceMonitor + PrometheusRule
+  - runtime ServiceMonitor + PrometheusRule (from `platform/hardening/monitoring`)
 - production image refs pinned to immutable digests for runtime/controller/providers
 
 ## Apply

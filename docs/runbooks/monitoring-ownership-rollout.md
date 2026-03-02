@@ -6,6 +6,10 @@ Last updated: 2026-02-27
 
 Define who owns monitoring in each environment and how monitoring requirements are enforced through gate profiles.
 
+SLO/SLI objectives and error-budget policy are defined in:
+
+- `docs/runbooks/slo-sli-error-budget.md`
+
 ## Ownership Matrix
 
 1. Platform engineering

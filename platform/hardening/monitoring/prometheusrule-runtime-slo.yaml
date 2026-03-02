@@ -1,0 +1,79 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: epydios-runtime-slo
+  labels:
+    app.kubernetes.io/name: orchestration-runtime
+    app.kubernetes.io/component: hardening
+    app.kubernetes.io/part-of: epydios-ai-control-plane
+spec:
+  groups:
+    - name: epydios.runtime.availability.rules
+      rules:
+        - alert: EpydiosOrchestrationRuntimeUnavailable
+          expr: kube_deployment_status_replicas_available{namespace="epydios-system",deployment="orchestration-runtime"} < 1
+          for: 10m
+          labels:
+            severity: critical
+            slo: runtime-availability
+          annotations:
+            summary: "Orchestration runtime is unavailable"
+            description: "Deployment epydios-system/orchestration-runtime has no available replicas for more than 10 minutes."
+        - alert: EpydiosRuntimeAvailabilitySLOBurnFast
+          expr: (sum(rate(epydios_runtime_http_requests_total{path=~"/v1alpha1/runtime/.*",status_class="5xx"}[5m])) / clamp_min(sum(rate(epydios_runtime_http_requests_total{path=~"/v1alpha1/runtime/.*"}[5m])), 0.001)) > 0.05
+          for: 10m
+          labels:
+            severity: critical
+            slo: runtime-availability
+            burn_rate: fast
+          annotations:
+            summary: "Runtime API is burning availability error budget quickly"
+            description: "5xx ratio for runtime API exceeded 5% over 5m window."
+        - alert: EpydiosRuntimeAvailabilitySLOBurnSlow
+          expr: (sum(rate(epydios_runtime_http_requests_total{path=~"/v1alpha1/runtime/.*",status_class="5xx"}[1h])) / clamp_min(sum(rate(epydios_runtime_http_requests_total{path=~"/v1alpha1/runtime/.*"}[1h])), 0.001)) > 0.01
+          for: 30m
+          labels:
+            severity: warning
+            slo: runtime-availability
+            burn_rate: slow
+          annotations:
+            summary: "Runtime API availability budget burn is elevated"
+            description: "5xx ratio for runtime API exceeded 1% over 1h window."
+    - name: epydios.runtime.quality.rules
+      rules:
+        - alert: EpydiosRuntimeLatencySLIHigh
+          expr: histogram_quantile(0.95, sum(rate(epydios_runtime_http_request_duration_seconds_bucket{path=~"/v1alpha1/runtime/.*"}[15m])) by (le)) > 1.5
+          for: 15m
+          labels:
+            severity: warning
+            slo: runtime-latency
+          annotations:
+            summary: "Runtime API latency SLI is above target"
+            description: "P95 runtime API latency exceeded 1.5 seconds for 15 minutes."
+        - alert: EpydiosRuntimeRunSuccessSLILow
+          expr: (sum(rate(epydios_runtime_run_executions_total{outcome="completed"}[30m])) / clamp_min(sum(rate(epydios_runtime_run_executions_total{outcome=~"completed|failed"}[30m])), 0.001)) < 0.98
+          for: 20m
+          labels:
+            severity: warning
+            slo: runtime-success
+          annotations:
+            summary: "Runtime run success SLI is below target"
+            description: "Completed run ratio dropped below 98% over a 30m window."
+        - alert: EpydiosRuntimeProviderErrorRateHigh
+          expr: (sum by (provider_type) (rate(epydios_runtime_provider_calls_total{outcome="error"}[15m])) / clamp_min(sum by (provider_type) (rate(epydios_runtime_provider_calls_total[15m])), 0.001)) > 0.10
+          for: 15m
+          labels:
+            severity: warning
+            slo: provider-reliability
+          annotations:
+            summary: "Runtime provider call error ratio is high"
+            description: "Provider call error ratio exceeded 10% for at least one provider type in the last 15 minutes."
+        - alert: EpydiosOrchestrationRuntimeCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total{namespace="epydios-system",container="runtime"}[15m]) > 3
+          for: 15m
+          labels:
+            severity: warning
+            slo: runtime-reliability
+          annotations:
+            summary: "Orchestration runtime restart rate is high"
+            description: "Runtime container restarted more than 3 times in 15 minutes."

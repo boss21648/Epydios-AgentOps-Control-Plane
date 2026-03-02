@@ -53,6 +53,18 @@ type entitlementRequestDetails struct {
 }
 
 func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*RunRecord, error) {
+	runStartedAt := time.Now()
+	decisionForMetrics := "UNKNOWN"
+	outcomeForMetrics := "failed"
+	runPersisted := false
+	defer func() {
+		normalizedOutcome := outcomeForMetrics
+		if !runPersisted && normalizedOutcome == "failed" {
+			normalizedOutcome = "rejected"
+		}
+		observeRuntimeRunExecution(normalizedOutcome, decisionForMetrics, time.Since(runStartedAt))
+	}()
+
 	if err := validateRunCreateRequest(req); err != nil {
 		return nil, err
 	}
@@ -103,6 +115,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	if err := o.Store.UpsertRun(ctx, run); err != nil {
 		return nil, fmt.Errorf("persist pending run: %w", err)
 	}
+	runPersisted = true
 	emitAuditEvent(ctx, "runtime.run.started", map[string]interface{}{
 		"runId":       run.RunID,
 		"requestId":   run.RequestID,
@@ -114,6 +127,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	})
 
 	failRun := func(cause error) (*RunRecord, error) {
+		outcomeForMetrics = "failed"
 		run.Status = RunStatusFailed
 		run.ErrorMessage = cause.Error()
 		run.UpdatedAt = time.Now().UTC()
@@ -128,6 +142,13 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 			"error":     cause.Error(),
 		})
 		return run, cause
+	}
+
+	callProvider := func(providerType, operation string, provider *ProviderTarget, path string, requestBody interface{}, responseBody interface{}) error {
+		started := time.Now()
+		err := o.ProviderRegistry.PostJSON(ctx, provider, path, requestBody, responseBody)
+		observeRuntimeProviderCall(providerType, operation, err, time.Since(started))
+		return err
 	}
 
 	profileProvider, err := o.ProviderRegistry.SelectProvider(ctx, o.Namespace, "ProfileResolver", "profile.resolve", o.ProfileMinPriority)
@@ -161,7 +182,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	}
 
 	var profileResp map[string]interface{}
-	if err := o.ProviderRegistry.PostJSON(ctx, profileProvider, "/v1alpha1/profile-resolver/resolve", profileReq, &profileResp); err != nil {
+	if err := callProvider("ProfileResolver", "profile-resolve", profileProvider, "/v1alpha1/profile-resolver/resolve", profileReq, &profileResp); err != nil {
 		return failRun(fmt.Errorf("profile provider call: %w", err))
 	}
 	if run.ProfileResponse, err = json.Marshal(profileResp); err != nil {
@@ -212,7 +233,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 		policyResp = denyResp
 		policyDecisionSource = "runtime-entitlement"
 	} else {
-		if err := o.ProviderRegistry.PostJSON(ctx, policyProvider, "/v1alpha1/policy-provider/evaluate", policyReq, &policyResp); err != nil {
+		if err := callProvider("PolicyProvider", "policy-evaluate", policyProvider, "/v1alpha1/policy-provider/evaluate", policyReq, &policyResp); err != nil {
 			return failRun(fmt.Errorf("policy provider call: %w", err))
 		}
 	}
@@ -221,6 +242,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 		return failRun(fmt.Errorf("policy provider response missing decision"))
 	}
 	decisionUpper := strings.ToUpper(strings.TrimSpace(decision))
+	decisionForMetrics = decisionUpper
 	run.PolicyDecision = decisionUpper
 	policyBundle := extractPolicyBundleRef(policyResp)
 	run.PolicyBundleID = policyBundle.PolicyID
@@ -322,7 +344,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	}
 
 	var recordResp map[string]interface{}
-	if err := o.ProviderRegistry.PostJSON(ctx, evidenceProvider, "/v1alpha1/evidence-provider/record", recordReq, &recordResp); err != nil {
+	if err := callProvider("EvidenceProvider", "evidence-record", evidenceProvider, "/v1alpha1/evidence-provider/record", recordReq, &recordResp); err != nil {
 		return failRun(fmt.Errorf("evidence record call: %w", err))
 	}
 	evidenceID, _ := recordResp["evidenceId"].(string)
@@ -358,7 +380,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	}
 
 	var finalizeResp map[string]interface{}
-	if err := o.ProviderRegistry.PostJSON(ctx, evidenceProvider, "/v1alpha1/evidence-provider/finalize-bundle", finalizeReq, &finalizeResp); err != nil {
+	if err := callProvider("EvidenceProvider", "evidence-finalize-bundle", evidenceProvider, "/v1alpha1/evidence-provider/finalize-bundle", finalizeReq, &finalizeResp); err != nil {
 		return failRun(fmt.Errorf("evidence finalize call: %w", err))
 	}
 	if run.EvidenceBundleResponse, err = json.Marshal(finalizeResp); err != nil {
@@ -382,6 +404,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 		"grantPresent":     run.PolicyGrantTokenPresent,
 		"grantSha256":      run.PolicyGrantTokenSHA256,
 	})
+	outcomeForMetrics = "completed"
 
 	return run, nil
 }

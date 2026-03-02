@@ -24,6 +24,7 @@ type APIServer struct {
 }
 
 func NewAPIServer(store RunStore, orchestrator *Orchestrator, auth *AuthEnforcer) *APIServer {
+	initRuntimeMetrics()
 	return &APIServer{
 		store:        store,
 		orchestrator: orchestrator,
@@ -766,9 +767,32 @@ func writeJSON(w http.ResponseWriter, code int, v interface{}) {
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		next.ServeHTTP(w, r)
-		log.Printf("%s %s remote=%s dur=%s", r.Method, r.URL.Path, r.RemoteAddr, time.Since(start).Round(time.Millisecond))
+		recorder := &responseRecorder{
+			ResponseWriter: w,
+			statusCode:     http.StatusOK,
+		}
+		next.ServeHTTP(recorder, r)
+		duration := time.Since(start)
+		observeRuntimeHTTPRequest(r.Method, r.URL.Path, recorder.statusCode, duration)
+		log.Printf(
+			"%s %s remote=%s status=%d dur=%s",
+			r.Method,
+			r.URL.Path,
+			r.RemoteAddr,
+			recorder.statusCode,
+			duration.Round(time.Millisecond),
+		)
 	})
+}
+
+type responseRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (r *responseRecorder) WriteHeader(statusCode int) {
+	r.statusCode = statusCode
+	r.ResponseWriter.WriteHeader(statusCode)
 }
 
 type ServerConfig struct {

@@ -16,8 +16,6 @@ resources:
   - networkpolicy-provider-ingress.yaml
   - pdb-orchestration-runtime.yaml
   - pdb-extension-provider-registry-controller.yaml
-  - servicemonitor-orchestration-runtime.yaml
-  - prometheusrule-orchestration-runtime.yaml
 patches:
   - path: patch-orchestration-runtime-deployment.yaml
   - path: patch-orchestration-runtime-service.yaml

@@ -9,6 +9,9 @@ KSERVE_REF="${KSERVE_REF:-af8ce37d57f8ef13430cbdad5851ad0bdbe5dff3}"
 KSERVE_IMAGE_TAG="${KSERVE_IMAGE_TAG:-v0.16.0}"
 USE_LOCAL_SUBSTRATE="${USE_LOCAL_SUBSTRATE:-1}"
 SUBSTRATE_ROOT="${SUBSTRATE_ROOT:-${WORK_PARENT}/SUBSTRATE_UPSTREAMS}"
+ALLOW_LOCAL_SUBSTRATE_FALLBACK="${ALLOW_LOCAL_SUBSTRATE_FALLBACK:-1}"
+KSERVE_APPLY_RETRIES="${KSERVE_APPLY_RETRIES:-3}"
+KSERVE_APPLY_RETRY_DELAY_SECONDS="${KSERVE_APPLY_RETRY_DELAY_SECONDS:-5}"
 
 RUN_PHASE_02="${RUN_PHASE_02:-0}"
 AUTO_INSTALL_CERT_MANAGER="${AUTO_INSTALL_CERT_MANAGER:-1}"
@@ -62,15 +65,36 @@ EOF
   printf '%s' "${dir}"
 }
 
-apply_kserve() {
+apply_kserve_once() {
   local kustomization="$1"
-  echo "Applying KServe (standalone overlay)..."
   local apply_args=(--server-side)
   if [ "${FORCE_CONFLICTS}" = "1" ]; then
     apply_args+=(--force-conflicts)
-    echo "Using server-side apply with force-conflicts (migration-safe for pre-existing client-side fields)."
   fi
   kubectl apply "${apply_args[@]}" -k "${kustomization}"
+}
+
+apply_kserve_with_retry() {
+  local kustomization="$1"
+  local source_label="$2"
+  local attempt rc=1
+
+  for attempt in $(seq 1 "${KSERVE_APPLY_RETRIES}"); do
+    echo "Applying KServe (standalone overlay, source=${source_label}) attempt ${attempt}/${KSERVE_APPLY_RETRIES}..."
+    if [ "${FORCE_CONFLICTS}" = "1" ]; then
+      echo "Using server-side apply with force-conflicts (migration-safe for pre-existing client-side fields)."
+    fi
+    if apply_kserve_once "${kustomization}"; then
+      return 0
+    fi
+    rc=$?
+    if [ "${attempt}" -lt "${KSERVE_APPLY_RETRIES}" ]; then
+      echo "KServe apply attempt ${attempt} failed (source=${source_label}); retrying in ${KSERVE_APPLY_RETRY_DELAY_SECONDS}s..."
+      sleep "${KSERVE_APPLY_RETRY_DELAY_SECONDS}"
+    fi
+  done
+
+  return "${rc}"
 }
 
 wait_for_kserve() {
@@ -129,19 +153,35 @@ main() {
   kubectl create namespace kserve --dry-run=client -o yaml | kubectl apply -f -
 
   local kserve_resource="github.com/kserve/kserve/config/overlays/standalone/kserve?ref=${KSERVE_REF}"
-  if [ "${USE_LOCAL_SUBSTRATE}" = "1" ] && [ -d "${SUBSTRATE_ROOT}" ]; then
+  local kserve_source="remote"
+  local fallback_resource=""
+  if [ -d "${SUBSTRATE_ROOT}" ]; then
     local kserve_dir
     kserve_dir="$(find_upstream_dir "kserve-kserve-*")"
     if [ -n "${kserve_dir}" ]; then
-      kserve_resource="${kserve_dir}/config/overlays/standalone/kserve"
-      echo "Using local KServe substrate: ${kserve_resource}"
+      fallback_resource="${kserve_dir}/config/overlays/standalone/kserve"
+      if [ "${USE_LOCAL_SUBSTRATE}" = "1" ]; then
+        kserve_resource="${fallback_resource}"
+        kserve_source="local"
+        echo "Using local KServe substrate: ${kserve_resource}"
+      fi
     fi
   fi
 
   local kustomization
   kustomization="$(write_kustomization "${kserve_resource}")"
 
-  apply_kserve "${kustomization}"
+  if ! apply_kserve_with_retry "${kustomization}" "${kserve_source}"; then
+    if [ "${kserve_source}" = "remote" ] && [ "${ALLOW_LOCAL_SUBSTRATE_FALLBACK}" = "1" ] && [ -n "${fallback_resource}" ]; then
+      echo "Remote KServe apply failed after ${KSERVE_APPLY_RETRIES} attempts; falling back to local substrate: ${fallback_resource}"
+      kustomization="$(write_kustomization "${fallback_resource}")"
+      apply_kserve_with_retry "${kustomization}" "local-fallback"
+    else
+      echo "KServe apply failed and no fallback path is available." >&2
+      exit 1
+    fi
+  fi
+
   wait_for_kserve
   verify_kserve_crds
   if [ "${RUN_FUNCTIONAL_SMOKE}" = "1" ]; then

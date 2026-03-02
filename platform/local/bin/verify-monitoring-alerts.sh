@@ -138,6 +138,18 @@ assert_rule_loaded() {
   wait_for_pattern \
     "http://127.0.0.1:${PROM_PORT}/api/v1/rules" \
     "EpydiosControlPlaneProviderCrashLooping"
+  wait_for_pattern \
+    "http://127.0.0.1:${PROM_PORT}/api/v1/rules" \
+    "EpydiosRuntimeAvailabilitySLOBurnFast"
+  wait_for_pattern \
+    "http://127.0.0.1:${PROM_PORT}/api/v1/rules" \
+    "EpydiosRuntimeLatencySLIHigh"
+  wait_for_pattern \
+    "http://127.0.0.1:${PROM_PORT}/api/v1/rules" \
+    "EpydiosRuntimeRunSuccessSLILow"
+  wait_for_pattern \
+    "http://127.0.0.1:${PROM_PORT}/api/v1/rules" \
+    "EpydiosRuntimeProviderErrorRateHigh"
 }
 
 apply_alert_smoke_rule() {
@@ -207,7 +219,9 @@ main() {
 
   echo "Checking monitoring resources in namespace ${NAMESPACE}..."
   kubectl -n "${NAMESPACE}" get servicemonitor epydios-extension-provider-registry-controller >/dev/null
+  kubectl -n "${NAMESPACE}" get servicemonitor orchestration-runtime >/dev/null
   kubectl -n "${NAMESPACE}" get prometheusrule epydios-extension-provider-registry-controller >/dev/null
+  kubectl -n "${NAMESPACE}" get prometheusrule epydios-runtime-slo >/dev/null
 
   echo "Starting Prometheus/Alertmanager API checks..."
   start_port_forwards

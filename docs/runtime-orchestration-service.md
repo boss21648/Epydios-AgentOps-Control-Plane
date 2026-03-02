@@ -24,12 +24,24 @@ This service moves policy/evidence/profile execution flow out of ad-hoc scripts 
 ## API Endpoints
 
 - `GET /healthz`
+- `GET /metrics`
 - `POST /v1alpha1/runtime/runs`
 - `GET /v1alpha1/runtime/runs?limit=100&offset=0&status=...&policyDecision=...&tenantId=...&projectId=...&environment=...&providerId=...&retentionClass=...&search=...&createdAfter=...&createdBefore=...&includeExpired=true|false`
 - `GET /v1alpha1/runtime/runs/export?format=jsonl|csv` (supports the same filters as list)
 - `POST /v1alpha1/runtime/runs/retention/prune` (`dryRun`, `before`, `retentionClass`, `limit`)
 - `GET /v1alpha1/runtime/runs/{runId}`
 - `GET /v1alpha1/runtime/audit/events?limit=100&tenantId=...&projectId=...&providerId=...&decision=...&event=...`
+
+## Runtime Metrics (M12.1)
+
+Runtime exposes SLO/SLI metrics at `/metrics`:
+
+- `epydios_runtime_http_requests_total` (`method`, `path`, `status_class`, `status_code`)
+- `epydios_runtime_http_request_duration_seconds` (`method`, `path`)
+- `epydios_runtime_run_executions_total` (`outcome`, `decision`)
+- `epydios_runtime_run_execution_duration_seconds` (`outcome`, `decision`)
+- `epydios_runtime_provider_calls_total` (`provider_type`, `operation`, `outcome`)
+- `epydios_runtime_provider_call_duration_seconds` (`provider_type`, `operation`, `outcome`)
 
 ## Runtime API Authn/Authz + Tenancy + Audit (M9.1/M9.2/M9.3/M9.4)
 

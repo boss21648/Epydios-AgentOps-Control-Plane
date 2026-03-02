@@ -30,6 +30,15 @@ RUN_M10_NO_EGRESS_LOCAL_AIMXS="${RUN_M10_NO_EGRESS_LOCAL_AIMXS:-}"
 RUN_M10_ENTITLEMENT_DENY="${RUN_M10_ENTITLEMENT_DENY:-}"
 RUN_M10_AIMXS_PRIVATE_RELEASE="${RUN_M10_AIMXS_PRIVATE_RELEASE:-}"
 RUN_M10_CUSTOMER_HOSTED_PACKAGING="${RUN_M10_CUSTOMER_HOSTED_PACKAGING:-}"
+RUN_M12_SLO_SLI_PACK="${RUN_M12_SLO_SLI_PACK:-}"
+RUN_M12_SLO_CLUSTER_ASSERTIONS="${RUN_M12_SLO_CLUSTER_ASSERTIONS:-}"
+RUN_M12_DR_GAMEDAY="${RUN_M12_DR_GAMEDAY:-}"
+M12_DR_MAX_RPO_SECONDS="${M12_DR_MAX_RPO_SECONDS:-}"
+M12_DR_MAX_RTO_SECONDS="${M12_DR_MAX_RTO_SECONDS:-}"
+RUN_M12_FAILURE_INJECTION="${RUN_M12_FAILURE_INJECTION:-}"
+M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS="${M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS:-}"
+M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS="${M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS:-}"
+M12_FAILURE_MAX_DB_RECOVERY_SECONDS="${M12_FAILURE_MAX_DB_RECOVERY_SECONDS:-}"
 RUN_M7_INTEGRATION="${RUN_M7_INTEGRATION:-}"
 RUN_M7_BACKUP_RESTORE="${RUN_M7_BACKUP_RESTORE:-}"
 RUN_M7_UPGRADE_SAFETY="${RUN_M7_UPGRADE_SAFETY:-}"
@@ -92,6 +101,15 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_M10_ENTITLEMENT_DENY 1
       set_default_if_unset RUN_M10_AIMXS_PRIVATE_RELEASE 1
       set_default_if_unset RUN_M10_CUSTOMER_HOSTED_PACKAGING 1
+      set_default_if_unset RUN_M12_SLO_SLI_PACK 1
+      set_default_if_unset RUN_M12_SLO_CLUSTER_ASSERTIONS auto
+      set_default_if_unset RUN_M12_DR_GAMEDAY 1
+      set_default_if_unset M12_DR_MAX_RPO_SECONDS 300
+      set_default_if_unset M12_DR_MAX_RTO_SECONDS 900
+      set_default_if_unset RUN_M12_FAILURE_INJECTION 1
+      set_default_if_unset M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS 180
+      set_default_if_unset M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS 180
+      set_default_if_unset M12_FAILURE_MAX_DB_RECOVERY_SECONDS 300
       set_default_if_unset RUN_M7_INTEGRATION 1
       set_default_if_unset RUN_M7_BACKUP_RESTORE 1
       set_default_if_unset RUN_M7_UPGRADE_SAFETY 1
@@ -142,6 +160,15 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_M10_ENTITLEMENT_DENY 0
       set_default_if_unset RUN_M10_AIMXS_PRIVATE_RELEASE 0
       set_default_if_unset RUN_M10_CUSTOMER_HOSTED_PACKAGING 0
+      set_default_if_unset RUN_M12_SLO_SLI_PACK 0
+      set_default_if_unset RUN_M12_SLO_CLUSTER_ASSERTIONS 0
+      set_default_if_unset RUN_M12_DR_GAMEDAY 0
+      set_default_if_unset M12_DR_MAX_RPO_SECONDS 300
+      set_default_if_unset M12_DR_MAX_RTO_SECONDS 900
+      set_default_if_unset RUN_M12_FAILURE_INJECTION 0
+      set_default_if_unset M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS 180
+      set_default_if_unset M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS 180
+      set_default_if_unset M12_FAILURE_MAX_DB_RECOVERY_SECONDS 300
       set_default_if_unset RUN_M7_INTEGRATION 0
       set_default_if_unset RUN_M7_BACKUP_RESTORE 0
       set_default_if_unset RUN_M7_UPGRADE_SAFETY 0
@@ -206,6 +233,9 @@ enforce_full_mode_contract() {
   check_required RUN_M10_ENTITLEMENT_DENY 1
   check_required RUN_M10_AIMXS_PRIVATE_RELEASE 1
   check_required RUN_M10_CUSTOMER_HOSTED_PACKAGING 1
+  check_required RUN_M12_SLO_SLI_PACK 1
+  check_required RUN_M12_DR_GAMEDAY 1
+  check_required RUN_M12_FAILURE_INJECTION 1
   check_required RUN_M7_INTEGRATION 1
   check_required RUN_M7_BACKUP_RESTORE 1
   check_required RUN_M7_UPGRADE_SAFETY 1
@@ -602,6 +632,33 @@ main() {
       "${REPO_ROOT}/platform/local/bin/verify-prod-hardening-baseline.sh"
   fi
 
+  if [ "${RUN_M12_SLO_SLI_PACK}" = "1" ]; then
+    echo "Running M12.1 gate (runtime SLO/SLI + error-budget pack)..."
+    NAMESPACE=epydios-system \
+    RUN_CLUSTER_ASSERTIONS="${RUN_M12_SLO_CLUSTER_ASSERTIONS}" \
+      "${REPO_ROOT}/platform/local/bin/verify-m12-slo-sli-pack.sh"
+  fi
+
+  if [ "${RUN_M12_DR_GAMEDAY}" = "1" ]; then
+    echo "Running M12.2 gate (DR game-day with explicit RPO/RTO assertions)..."
+    NAMESPACE=epydios-system \
+    CLUSTER_NAME=epydios-postgres \
+    MAX_RPO_SECONDS="${M12_DR_MAX_RPO_SECONDS}" \
+    MAX_RTO_SECONDS="${M12_DR_MAX_RTO_SECONDS}" \
+      "${REPO_ROOT}/platform/local/bin/verify-m12-dr-gameday.sh"
+  fi
+
+  if [ "${RUN_M12_FAILURE_INJECTION}" = "1" ]; then
+    echo "Running M12.3 gate (failure-injection + rollback drills)..."
+    NAMESPACE=epydios-system \
+    CNPG_NAMESPACE=epydios-system \
+    CNPG_CLUSTER_NAME=epydios-postgres \
+    MAX_RUNTIME_RECOVERY_SECONDS="${M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS}" \
+    MAX_POLICY_RECOVERY_SECONDS="${M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS}" \
+    MAX_DB_RECOVERY_SECONDS="${M12_FAILURE_MAX_DB_RECOVERY_SECONDS}" \
+      "${REPO_ROOT}/platform/local/bin/verify-m12-failure-injection-rollback.sh"
+  fi
+
   if [ "${RUN_AIMXS_BOUNDARY_CHECK}" = "1" ]; then
     echo "Running AIMXS external-boundary verification..."
     "${REPO_ROOT}/platform/local/bin/verify-aimxs-boundary.sh"
@@ -616,7 +673,7 @@ main() {
   cleanup_secure_fixture_resources
 
   echo
-  echo "CI gate passed (${GATE_MODE} mode): Phase 00/01 + Phase 02 + Phase 03 + Phase 04 + M5 runtime + optional Phase 05 + provenance check."
+  echo "CI gate passed (${GATE_MODE} mode): Phase 00/01 + Phase 02 + Phase 03 + Phase 04 + M5 runtime + M9 + M10 + M12.1/M12.2/M12.3 + optional Phase 05 + provenance check."
 }
 
 main "$@"

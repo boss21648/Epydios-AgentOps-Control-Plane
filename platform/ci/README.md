@@ -103,6 +103,40 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - runs `platform/local/bin/verify-m10-customer-hosted-packaging.sh`
     - validates customer-hosted packaging references (signed image/artifact + SBOM + air-gapped install/update bundles + support/SLA docs)
     - reads `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default for private customer-hosted release metadata (falls back to repo-local path only if present)
+  - M12.1 runtime SLO/SLI + error-budget verification:
+    - `RUN_M12_SLO_SLI_PACK=1` in full mode (required)
+    - `RUN_M12_SLO_SLI_PACK=0` default in fast mode
+    - cluster-level assertions controlled by `RUN_M12_SLO_CLUSTER_ASSERTIONS` (`auto|1|0`)
+    - runs `platform/local/bin/verify-m12-slo-sli-pack.sh`
+    - validates:
+      - SLO/SLI policy runbook presence and required sections
+      - runtime ServiceMonitor + PrometheusRule manifests in hardening pack
+      - runtime SLO alert set (`availability burn`, `latency`, `run success`, `provider error rate`)
+      - in-cluster monitor/rule resources when monitoring CRDs are present (or required)
+  - M12.2 DR game-day (RPO/RTO) verification:
+    - `RUN_M12_DR_GAMEDAY=1` in full mode (required)
+    - `RUN_M12_DR_GAMEDAY=0` default in fast mode
+    - thresholds:
+      - `M12_DR_MAX_RPO_SECONDS` (default `300`)
+      - `M12_DR_MAX_RTO_SECONDS` (default `900`)
+    - runs `platform/local/bin/verify-m12-dr-gameday.sh`
+    - validates:
+      - backup/restore integrity after simulated loss
+      - explicit RPO/RTO threshold assertions
+      - machine-readable evidence artifact output under non-GitHub provenance path
+  - M12.3 failure-injection + rollback verification:
+    - `RUN_M12_FAILURE_INJECTION=1` in full mode (required)
+    - `RUN_M12_FAILURE_INJECTION=0` default in fast mode
+    - thresholds:
+      - `M12_FAILURE_MAX_RUNTIME_RECOVERY_SECONDS` (default `180`)
+      - `M12_FAILURE_MAX_POLICY_RECOVERY_SECONDS` (default `180`)
+      - `M12_FAILURE_MAX_DB_RECOVERY_SECONDS` (default `300`)
+    - runs `platform/local/bin/verify-m12-failure-injection-rollback.sh`
+    - validates:
+      - runtime deployment outage + rollback recovery
+      - policy-provider outage + rollback recovery and provider readiness
+      - CNPG pod restart recovery for the control-plane database
+      - machine-readable evidence artifact output under non-GitHub provenance path
   - M9 runtime authz checks in full mode (required, no skips):
     - `RUN_M9_AUTHN_AUTHZ=1`
     - `RUN_M9_AUTHZ_TENANCY=1`
@@ -119,6 +153,11 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=1`
     - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=1`
     - Full mode enforces M10.1 + M10.2 + M10.3 + M10.4 + M10.5 + M10.6 + M10.7 and exits if overridden to disabled value.
+  - M12 operations pack check in full mode (required, no skips):
+    - `RUN_M12_SLO_SLI_PACK=1`
+    - `RUN_M12_DR_GAMEDAY=1`
+    - `RUN_M12_FAILURE_INJECTION=1`
+    - Full mode enforces M12.1 + M12.2 + M12.3 verifiers and exits if overridden to disabled values.
   - M7 reliability suite in full mode (required, no skips):
     - `RUN_M7_INTEGRATION=1` (M0->M5 critical path through `platform/local/bin/verify-m7-integration.sh`)
     - `RUN_M7_BACKUP_RESTORE=1` (M7.2 CNPG backup/restore drill)

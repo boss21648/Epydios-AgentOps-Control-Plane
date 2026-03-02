@@ -3,4 +3,6 @@ kind: Kustomization
 namespace: epydios-system
 resources:
   - servicemonitor-extension-provider-registry-controller.yaml
+  - servicemonitor-orchestration-runtime.yaml
   - prometheusrule-extension-provider-registry-controller.yaml
+  - prometheusrule-runtime-slo.yaml
