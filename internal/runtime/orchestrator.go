@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,9 +22,19 @@ type Orchestrator struct {
 	PolicyMinPriority     int64
 	EvidenceMinPriority   int64
 	RequirePolicyGrant    bool
+	AIMXSEntitlement      AIMXSEntitlementConfig
 	PolicyLifecycle       PolicyLifecycleConfig
 	RetentionDefaultClass string
 	RetentionClassTTLs    map[string]time.Duration
+}
+
+type AIMXSEntitlementConfig struct {
+	Enabled               bool
+	ProviderNamePrefixes  []string
+	AllowedSKUs           map[string]struct{}
+	SKUFeatures           map[string]map[string]struct{}
+	RequiredFeatures      map[string]struct{}
+	RequireEntitlementKey bool
 }
 
 type PolicyLifecycleConfig struct {
@@ -32,6 +43,13 @@ type PolicyLifecycleConfig struct {
 	AllowedPolicyIDs map[string]struct{}
 	MinVersion       string
 	RolloutPercent   int
+}
+
+type entitlementRequestDetails struct {
+	SKU        string
+	Token      string
+	Features   map[string]struct{}
+	RawFeature []string
 }
 
 func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*RunRecord, error) {
@@ -189,8 +207,14 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	}
 
 	var policyResp map[string]interface{}
-	if err := o.ProviderRegistry.PostJSON(ctx, policyProvider, "/v1alpha1/policy-provider/evaluate", policyReq, &policyResp); err != nil {
-		return failRun(fmt.Errorf("policy provider call: %w", err))
+	policyDecisionSource := "provider"
+	if denyResp, ok := o.evaluateAIMXSEntitlement(ctx, run, policyProvider, normalizedReq); ok {
+		policyResp = denyResp
+		policyDecisionSource = "runtime-entitlement"
+	} else {
+		if err := o.ProviderRegistry.PostJSON(ctx, policyProvider, "/v1alpha1/policy-provider/evaluate", policyReq, &policyResp); err != nil {
+			return failRun(fmt.Errorf("policy provider call: %w", err))
+		}
 	}
 	decision, _ := policyResp["decision"].(string)
 	if strings.TrimSpace(decision) == "" {
@@ -202,8 +226,10 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 	run.PolicyBundleID = policyBundle.PolicyID
 	run.PolicyBundleVersion = policyBundle.PolicyVersion
 
-	if err := o.evaluatePolicyLifecycle(ctx, run, policyBundle); err != nil {
-		return failRun(err)
+	if policyDecisionSource == "provider" {
+		if err := o.evaluatePolicyLifecycle(ctx, run, policyBundle); err != nil {
+			return failRun(err)
+		}
 	}
 
 	grantToken, grantTokenSource := extractPolicyGrantToken(policyResp)
@@ -230,6 +256,7 @@ func (o *Orchestrator) ExecuteRun(ctx context.Context, req RunCreateRequest) (*R
 		"requestId":      run.RequestID,
 		"decision":       decisionUpper,
 		"policyProvider": run.SelectedPolicyProvider,
+		"decisionSource": policyDecisionSource,
 		"grantRequired":  o.RequirePolicyGrant && decisionRequiresGrant(decisionUpper),
 		"grantPresent":   run.PolicyGrantTokenPresent,
 		"grantSource":    grantTokenSource,
@@ -455,6 +482,343 @@ func (o *Orchestrator) evaluatePolicyLifecycle(ctx context.Context, run *RunReco
 		return fmt.Errorf("policy lifecycle validation failed: %s", strings.Join(violations, "; "))
 	}
 	return nil
+}
+
+func (o *Orchestrator) evaluateAIMXSEntitlement(ctx context.Context, run *RunRecord, provider *ProviderTarget, req RunCreateRequest) (map[string]interface{}, bool) {
+	if !o.shouldApplyAIMXSEntitlement(provider) {
+		return nil, false
+	}
+
+	details := extractEntitlementRequestDetails(req)
+	requiredFeatures := o.entitlementRequiredFeaturesForSKU(details.SKU)
+	tokenPresent := strings.TrimSpace(details.Token) != ""
+
+	violationCodes := make([]string, 0, 4)
+	violationMessages := make([]string, 0, 4)
+
+	if o.AIMXSEntitlement.RequireEntitlementKey && !tokenPresent {
+		violationCodes = append(violationCodes, "AIMXS_ENTITLEMENT_TOKEN_REQUIRED")
+		violationMessages = append(violationMessages, "missing required AIMXS entitlement token")
+	}
+	if len(o.AIMXSEntitlement.AllowedSKUs) > 0 {
+		if details.SKU == "" {
+			violationCodes = append(violationCodes, "AIMXS_ENTITLEMENT_SKU_REQUIRED")
+			violationMessages = append(violationMessages, "missing required AIMXS SKU")
+		} else if _, ok := o.AIMXSEntitlement.AllowedSKUs[details.SKU]; !ok {
+			violationCodes = append(violationCodes, "AIMXS_ENTITLEMENT_SKU_NOT_ALLOWED")
+			violationMessages = append(violationMessages, fmt.Sprintf("AIMXS SKU %q is not allowed", details.SKU))
+		}
+	}
+
+	missingFeatures := make([]string, 0, len(requiredFeatures))
+	for _, required := range requiredFeatures {
+		if _, ok := details.Features[required]; !ok {
+			missingFeatures = append(missingFeatures, required)
+		}
+	}
+	if len(missingFeatures) > 0 {
+		violationCodes = append(violationCodes, "AIMXS_ENTITLEMENT_FEATURE_MISSING")
+		violationMessages = append(violationMessages, fmt.Sprintf("missing required AIMXS features: %s", strings.Join(missingFeatures, ",")))
+	}
+
+	emitAuditEvent(ctx, "runtime.aimxs.entitlement.evaluate", map[string]interface{}{
+		"runId":            run.RunID,
+		"requestId":        run.RequestID,
+		"providerName":     provider.Name,
+		"providerId":       provider.ProviderID,
+		"sku":              details.SKU,
+		"tokenPresent":     tokenPresent,
+		"features":         sortedSetKeys(details.Features),
+		"requiredFeatures": requiredFeatures,
+		"violations":       append([]string(nil), violationCodes...),
+		"allowed":          len(violationCodes) == 0,
+	})
+
+	if len(violationCodes) == 0 {
+		emitAuditEvent(ctx, "runtime.aimxs.entitlement.allow", map[string]interface{}{
+			"runId":            run.RunID,
+			"requestId":        run.RequestID,
+			"providerName":     provider.Name,
+			"providerId":       provider.ProviderID,
+			"sku":              details.SKU,
+			"tokenPresent":     tokenPresent,
+			"features":         sortedSetKeys(details.Features),
+			"requiredFeatures": requiredFeatures,
+		})
+		return nil, false
+	}
+
+	emitAuditEvent(ctx, "runtime.aimxs.entitlement.deny", map[string]interface{}{
+		"runId":            run.RunID,
+		"requestId":        run.RequestID,
+		"providerName":     provider.Name,
+		"providerId":       provider.ProviderID,
+		"sku":              details.SKU,
+		"tokenPresent":     tokenPresent,
+		"features":         sortedSetKeys(details.Features),
+		"requiredFeatures": requiredFeatures,
+		"violations":       append([]string(nil), violationCodes...),
+	})
+
+	return buildEntitlementDenyPolicyResponse(provider, details, requiredFeatures, missingFeatures, violationCodes, violationMessages), true
+}
+
+func (o *Orchestrator) shouldApplyAIMXSEntitlement(provider *ProviderTarget) bool {
+	if !o.AIMXSEntitlement.Enabled || provider == nil {
+		return false
+	}
+	if len(o.AIMXSEntitlement.ProviderNamePrefixes) == 0 {
+		return false
+	}
+	candidates := []string{provider.Name, provider.ProviderID}
+	for _, candidate := range candidates {
+		candidateNorm := strings.ToLower(strings.TrimSpace(candidate))
+		if candidateNorm == "" {
+			continue
+		}
+		for _, prefix := range o.AIMXSEntitlement.ProviderNamePrefixes {
+			prefixNorm := strings.ToLower(strings.TrimSpace(prefix))
+			if prefixNorm == "" {
+				continue
+			}
+			if strings.HasPrefix(candidateNorm, prefixNorm) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (o *Orchestrator) entitlementRequiredFeaturesForSKU(sku string) []string {
+	required := make(map[string]struct{}, len(o.AIMXSEntitlement.RequiredFeatures))
+	for feature := range o.AIMXSEntitlement.RequiredFeatures {
+		if feature != "" {
+			required[feature] = struct{}{}
+		}
+	}
+	if sku != "" {
+		if skuFeatures, ok := o.AIMXSEntitlement.SKUFeatures[sku]; ok {
+			for feature := range skuFeatures {
+				if feature != "" {
+					required[feature] = struct{}{}
+				}
+			}
+		}
+	}
+	return sortedSetKeys(required)
+}
+
+func extractEntitlementRequestDetails(req RunCreateRequest) entitlementRequestDetails {
+	details := entitlementRequestDetails{
+		Features: make(map[string]struct{}),
+	}
+	if req.Annotations == nil {
+		return details
+	}
+
+	annotations := map[string]interface{}(req.Annotations)
+	details.SKU = normalizeEntitlementKey(firstNonEmpty(
+		nestedStringValue(annotations, "aimxsEntitlement", "sku"),
+		nestedStringValue(annotations, "aimxs", "entitlement", "sku"),
+		stringValue(annotations["aimxs.sku"]),
+		stringValue(annotations["aimxsSku"]),
+		stringValue(annotations["aimxsSKU"]),
+		stringValue(annotations["entitlementSku"]),
+	))
+	details.Token = strings.TrimSpace(firstNonEmpty(
+		nestedStringValue(annotations, "aimxsEntitlement", "token"),
+		nestedStringValue(annotations, "aimxs", "entitlement", "token"),
+		stringValue(annotations["aimxs.token"]),
+		stringValue(annotations["aimxsToken"]),
+		stringValue(annotations["aimxsEntitlementToken"]),
+		stringValue(annotations["entitlementToken"]),
+	))
+
+	featureValues := make([]string, 0, 8)
+	featureValues = append(featureValues, entitlementFeaturesFromValue(nestedValue(annotations, "aimxsEntitlement", "features"))...)
+	featureValues = append(featureValues, entitlementFeaturesFromValue(nestedValue(annotations, "aimxs", "entitlement", "features"))...)
+	featureValues = append(featureValues, entitlementFeaturesFromValue(annotations["aimxs.features"])...)
+	featureValues = append(featureValues, entitlementFeaturesFromValue(annotations["aimxsFeatures"])...)
+	featureValues = append(featureValues, entitlementFeaturesFromValue(annotations["entitlementFeatures"])...)
+
+	seen := make(map[string]struct{}, len(featureValues))
+	for _, feature := range featureValues {
+		norm := normalizeEntitlementKey(feature)
+		if norm == "" {
+			continue
+		}
+		if _, ok := seen[norm]; ok {
+			continue
+		}
+		seen[norm] = struct{}{}
+		details.RawFeature = append(details.RawFeature, norm)
+		details.Features[norm] = struct{}{}
+	}
+	sort.Strings(details.RawFeature)
+	return details
+}
+
+func buildEntitlementDenyPolicyResponse(
+	provider *ProviderTarget,
+	details entitlementRequestDetails,
+	requiredFeatures []string,
+	missingFeatures []string,
+	violationCodes []string,
+	violationMessages []string,
+) map[string]interface{} {
+	reasons := make([]map[string]interface{}, 0, len(violationCodes))
+	for i, code := range violationCodes {
+		message := "AIMXS entitlement validation failed"
+		if i < len(violationMessages) && strings.TrimSpace(violationMessages[i]) != "" {
+			message = violationMessages[i]
+		}
+		reasons = append(reasons, map[string]interface{}{
+			"code":    code,
+			"message": message,
+		})
+	}
+	return map[string]interface{}{
+		"decision": "DENY",
+		"reasons":  reasons,
+		"policyBundle": map[string]interface{}{
+			"policyId":      "runtime-entitlement",
+			"policyVersion": "v1alpha1",
+		},
+		"output": map[string]interface{}{
+			"engine":           "runtime-entitlement",
+			"providerName":     provider.Name,
+			"providerId":       provider.ProviderID,
+			"sku":              details.SKU,
+			"tokenPresent":     strings.TrimSpace(details.Token) != "",
+			"features":         sortedSetKeys(details.Features),
+			"requiredFeatures": requiredFeatures,
+			"missingFeatures":  missingFeatures,
+		},
+	}
+}
+
+func nestedValue(m map[string]interface{}, path ...string) interface{} {
+	if len(path) == 0 || len(m) == 0 {
+		return nil
+	}
+	var current interface{} = m
+	for _, segment := range path {
+		switch obj := current.(type) {
+		case map[string]interface{}:
+			next, exists := obj[segment]
+			if !exists {
+				return nil
+			}
+			current = next
+		case JSONObject:
+			next, exists := obj[segment]
+			if !exists {
+				return nil
+			}
+			current = next
+		default:
+			return nil
+		}
+	}
+	return current
+}
+
+func nestedStringValue(m map[string]interface{}, path ...string) string {
+	return stringValue(nestedValue(m, path...))
+}
+
+func stringValue(v interface{}) string {
+	switch typed := v.(type) {
+	case string:
+		return strings.TrimSpace(typed)
+	case fmt.Stringer:
+		return strings.TrimSpace(typed.String())
+	default:
+		return ""
+	}
+}
+
+func entitlementFeaturesFromValue(v interface{}) []string {
+	switch typed := v.(type) {
+	case nil:
+		return nil
+	case string:
+		raw := strings.TrimSpace(typed)
+		if raw == "" {
+			return nil
+		}
+		parts := strings.FieldsFunc(raw, func(r rune) bool {
+			return r == ',' || r == ';'
+		})
+		out := make([]string, 0, len(parts))
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				out = append(out, part)
+			}
+		}
+		if len(out) == 0 {
+			out = append(out, raw)
+		}
+		return out
+	case []string:
+		out := make([]string, 0, len(typed))
+		for _, item := range typed {
+			if trimmed := strings.TrimSpace(item); trimmed != "" {
+				out = append(out, trimmed)
+			}
+		}
+		return out
+	case []interface{}:
+		out := make([]string, 0, len(typed))
+		for _, item := range typed {
+			if trimmed := strings.TrimSpace(stringValue(item)); trimmed != "" {
+				out = append(out, trimmed)
+			}
+		}
+		return out
+	case map[string]interface{}:
+		out := make([]string, 0, len(typed))
+		for key, val := range typed {
+			if boolVal, ok := val.(bool); ok && !boolVal {
+				continue
+			}
+			if strVal, ok := val.(string); ok {
+				if strings.EqualFold(strings.TrimSpace(strVal), "false") {
+					continue
+				}
+			}
+			if strings.TrimSpace(key) != "" {
+				out = append(out, key)
+			}
+		}
+		return out
+	case JSONObject:
+		return entitlementFeaturesFromValue(map[string]interface{}(typed))
+	default:
+		if trimmed := strings.TrimSpace(stringValue(v)); trimmed != "" {
+			return []string{trimmed}
+		}
+		return nil
+	}
+}
+
+func normalizeEntitlementKey(raw string) string {
+	return strings.ToLower(strings.TrimSpace(raw))
+}
+
+func sortedSetKeys(set map[string]struct{}) []string {
+	if len(set) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(set))
+	for key := range set {
+		if strings.TrimSpace(key) != "" {
+			out = append(out, key)
+		}
+	}
+	sort.Strings(out)
+	return out
 }
 
 func stableRolloutBucket(parts ...string) int {

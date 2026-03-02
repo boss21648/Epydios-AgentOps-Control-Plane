@@ -82,6 +82,15 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - `RUN_M10_NO_EGRESS_LOCAL_AIMXS=0` default in fast mode
     - runs `platform/local/bin/verify-m10-no-egress-local-aimxs.sh`
     - validates local/customer-hosted policy path succeeds while external egress is blocked by a scoped runtime NetworkPolicy
+  - M10.6 AIMXS entitlement deny-path verification:
+    - `RUN_M10_ENTITLEMENT_DENY=1` in full mode (required)
+    - `RUN_M10_ENTITLEMENT_DENY=0` default in fast mode
+    - runs `platform/local/bin/verify-m10-entitlement-deny.sh`
+    - validates runtime entitlement boundary:
+      - missing entitlement token => `DENY`
+      - disallowed SKU => `DENY`
+      - missing required feature => `DENY`
+      - licensed entitlement payload => `ALLOW`
   - M10.2 AIMXS private release evidence verification:
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=1` in full mode (required)
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=0` default in fast mode
@@ -100,8 +109,9 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - `RUN_M10_POLICY_GRANT_ENFORCEMENT=1`
     - `RUN_M10_DEPLOYMENT_MODES=1`
     - `RUN_M10_NO_EGRESS_LOCAL_AIMXS=1`
+    - `RUN_M10_ENTITLEMENT_DENY=1`
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=1`
-    - Full mode enforces M10.1 + M10.2 + M10.3 + M10.4 + M10.5 and exits if overridden to disabled value.
+    - Full mode enforces M10.1 + M10.2 + M10.3 + M10.4 + M10.5 + M10.6 and exits if overridden to disabled value.
   - M7 reliability suite in full mode (required, no skips):
     - `RUN_M7_INTEGRATION=1` (M0->M5 critical path through `platform/local/bin/verify-m7-integration.sh`)
     - `RUN_M7_BACKUP_RESTORE=1` (M7.2 CNPG backup/restore drill)

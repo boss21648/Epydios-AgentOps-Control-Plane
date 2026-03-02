@@ -433,6 +433,28 @@ Fast path when runtime baseline is already healthy:
 RUN_M5_BASELINE=0 ./platform/local/bin/verify-m10-policy-grant-enforcement.sh
 ```
 
+### M10.6 AIMXS entitlement deny-path verification
+
+Runs runtime AIMXS entitlement boundary checks on the policy-provider path:
+- optionally runs M5 baseline first
+- applies `aimxs-customer-hosted` mode and local AIMXS contract override for OSS smoke
+- enables runtime entitlement enforcement
+- asserts:
+  - missing entitlement token => `DENY`
+  - disallowed SKU => `DENY`
+  - missing required feature => `DENY`
+  - licensed entitlement payload => `ALLOW`
+
+```bash
+./platform/local/bin/verify-m10-entitlement-deny.sh
+```
+
+Fast path when runtime baseline is already healthy:
+
+```bash
+RUN_M5_BASELINE=0 ./platform/local/bin/verify-m10-entitlement-deny.sh
+```
+
 ### M7.1 integration verification (M0->M5 critical path)
 
 Runs one end-to-end integration gate across milestones M0 through M5:
@@ -787,6 +809,7 @@ WITH_SYSTEM_SMOKETEST=1 ./platform/local/bin/bootstrap-k3d.sh
 - `platform/local/bin/verify-m10-policy-grant-enforcement.sh` validates required grant-token enforcement (`no token => no execution` for non-DENY decisions)
 - `platform/local/bin/verify-m10-deployment-modes.sh` validates three deployment-mode routing transitions (`oss-only`, `aimxs-hosted`, `aimxs-customer-hosted`) under one provider contract
 - `platform/local/bin/verify-m10-no-egress-local-aimxs.sh` validates customer-hosted local AIMXS mode under scoped no-egress network policy constraints
+- `platform/local/bin/verify-m10-entitlement-deny.sh` validates runtime entitlement deny-path assertions and licensed ALLOW behavior on AIMXS policy routing
 - `platform/local/bin/verify-m7-integration.sh` runs an end-to-end M0->M5 critical-path integration gate (optionally includes M7.2)
 - `platform/local/bin/verify-m7-cnpg-backup-restore.sh` runs the M7.2 CNPG backup/restore drill
 - `platform/local/bin/verify-m7-upgrade-safety.sh` runs the M7.3 N-1->N upgrade safety gate

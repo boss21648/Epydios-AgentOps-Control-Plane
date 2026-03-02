@@ -53,6 +53,13 @@ This package defines:
 - Decision API compatibility policy is tracked in:
   - `platform/upgrade/compatibility-policy-aimxs-decision-api.yaml`
 - For non-`DENY` decisions, AIMXS-compatible policy providers should return a grant token (`grantToken` or `output.aimxsGrantToken`) so runtime can enforce non-bypassable execution.
+- Runtime can enforce entitlement/SKU boundary for AIMXS provider paths (`AUTHZ_REQUIRE_AIMXS_ENTITLEMENT=true`) before policy provider invocation.
+- Entitlement policy is configured via runtime env:
+  - `AUTHZ_AIMXS_PROVIDER_PREFIXES`
+  - `AUTHZ_AIMXS_ALLOWED_SKUS`
+  - `AUTHZ_AIMXS_REQUIRED_FEATURES`
+  - `AUTHZ_AIMXS_SKU_FEATURES_JSON`
+  - `AUTHZ_AIMXS_ENTITLEMENT_TOKEN_REQUIRED`
 
 ## Conformance and Failure Handling
 
@@ -67,5 +74,6 @@ This package defines:
 - Local boundary verification is provided by:
   - `platform/local/bin/verify-aimxs-boundary.sh`
   - `platform/local/bin/verify-m10-policy-grant-enforcement.sh`
+  - `platform/local/bin/verify-m10-entitlement-deny.sh`
   - `platform/local/bin/verify-m10-deployment-modes.sh`
   - `platform/local/bin/verify-m10-no-egress-local-aimxs.sh`

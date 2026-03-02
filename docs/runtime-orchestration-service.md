@@ -48,6 +48,12 @@ This service moves policy/evidence/profile execution flow out of ad-hoc scripts 
   - `AUTHZ_POLICY_MATRIX_JSON` (tenant/project allow/deny policy rules)
   - `AUTHZ_POLICY_MATRIX_REQUIRED` (require non-empty policy matrix when auth is enabled)
   - `AUTHZ_REQUIRE_POLICY_GRANT` (require policy grant token for non-`DENY` decisions before execution continues)
+  - `AUTHZ_REQUIRE_AIMXS_ENTITLEMENT` (enable runtime entitlement checks for AIMXS policy-provider path)
+  - `AUTHZ_AIMXS_PROVIDER_PREFIXES` (comma-separated provider name/providerId prefixes considered AIMXS)
+  - `AUTHZ_AIMXS_ALLOWED_SKUS` (comma-separated allowed SKUs; optional)
+  - `AUTHZ_AIMXS_REQUIRED_FEATURES` (comma-separated required feature flags; optional)
+  - `AUTHZ_AIMXS_SKU_FEATURES_JSON` (JSON map: `sku -> required feature list`)
+  - `AUTHZ_AIMXS_ENTITLEMENT_TOKEN_REQUIRED` (require entitlement token on AIMXS path; defaults true)
   - `POLICY_LIFECYCLE_ENABLED` (enable lifecycle checks on policy bundle metadata)
   - `POLICY_LIFECYCLE_MODE` (`observe` or `enforce`)
   - `POLICY_ALLOWED_IDS` (comma-separated allowed policy bundle IDs)
@@ -102,6 +108,24 @@ This service moves policy/evidence/profile execution flow out of ad-hoc scripts 
   - `policyGrantTokenSha256`
 - Raw grant token values are redacted from persisted `policyResponse` payloads.
 
+## AIMXS Entitlement Enforcement (M10.6)
+
+- Optional strict mode (`AUTHZ_REQUIRE_AIMXS_ENTITLEMENT=true`) applies only to policy providers whose name/providerId matches `AUTHZ_AIMXS_PROVIDER_PREFIXES`.
+- Runtime reads entitlement inputs from `request.annotations` (`aimxsEntitlement.sku`, `aimxsEntitlement.token`, `aimxsEntitlement.features`, plus flat-key compatibility aliases).
+- Runtime performs deny-first checks before policy provider call:
+  - token required (when enabled)
+  - SKU allowlist (`AUTHZ_AIMXS_ALLOWED_SKUS`)
+  - required feature flags (`AUTHZ_AIMXS_REQUIRED_FEATURES` + `AUTHZ_AIMXS_SKU_FEATURES_JSON`)
+- On entitlement failure, runtime emits a synthetic `DENY` policy result with explicit reason codes:
+  - `AIMXS_ENTITLEMENT_TOKEN_REQUIRED`
+  - `AIMXS_ENTITLEMENT_SKU_REQUIRED`
+  - `AIMXS_ENTITLEMENT_SKU_NOT_ALLOWED`
+  - `AIMXS_ENTITLEMENT_FEATURE_MISSING`
+- Audit events:
+  - `runtime.aimxs.entitlement.evaluate`
+  - `runtime.aimxs.entitlement.allow`
+  - `runtime.aimxs.entitlement.deny`
+
 ## Execution Flow
 
 1. Resolve profile
@@ -146,3 +170,6 @@ This service moves policy/evidence/profile execution flow out of ad-hoc scripts 
 - `platform/local/bin/verify-m10-policy-grant-enforcement.sh`
   - optional baseline bootstrap via M5 verifier
   - validates non-bypassable grant enforcement (`no token => no execution`) for non-`DENY` policy decisions
+- `platform/local/bin/verify-m10-entitlement-deny.sh`
+  - optional baseline bootstrap via M5 verifier
+  - validates AIMXS entitlement deny paths (missing token, bad SKU, missing feature) and licensed ALLOW path

@@ -13,10 +13,12 @@ RUN_BOUNDARY_CHECK="${RUN_BOUNDARY_CHECK:-1}"
 M10_3_GATE_EXECUTED="${M10_3_GATE_EXECUTED:-0}"
 M10_4_GATE_EXECUTED="${M10_4_GATE_EXECUTED:-0}"
 M10_5_GATE_EXECUTED="${M10_5_GATE_EXECUTED:-0}"
+M10_6_GATE_EXECUTED="${M10_6_GATE_EXECUTED:-0}"
 
 M10_3_LOG_IN_STAGING="0"
 M10_4_LOG_IN_STAGING="0"
 M10_5_LOG_IN_STAGING="0"
+M10_6_LOG_IN_STAGING="0"
 
 AIMXS_PRIVATE_SDK_RELEASE_TAG="${AIMXS_PRIVATE_SDK_RELEASE_TAG:-}"
 AIMXS_PRIVATE_SDK_ARTIFACT_PATH="${AIMXS_PRIVATE_SDK_ARTIFACT_PATH:-}"
@@ -142,8 +144,10 @@ find_staging_log() {
         && grep -Fq "AIMXS boundary verification passed." "${candidate}" \
         && grep -Fq "Running M10.1 gate (provider conformance matrix across auth modes)..." "${candidate}"; then
         if grep -Fq "Running M10.3 gate (policy grant token enforcement, no-token no-execution)..." "${candidate}"; then
-          strict_latest="${candidate}"
-          break
+          if grep -Fq "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)..." "${candidate}"; then
+            strict_latest="${candidate}"
+            break
+          fi
         fi
         if [ -z "${fallback_latest}" ]; then
           fallback_latest="${candidate}"
@@ -195,6 +199,11 @@ find_staging_log() {
     M10_5_LOG_IN_STAGING="1"
   else
     M10_5_LOG_IN_STAGING="0"
+  fi
+  if grep -Fq "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)..." "${STAGING_GATE_LOG_PATH}" 2>/dev/null; then
+    M10_6_LOG_IN_STAGING="1"
+  else
+    M10_6_LOG_IN_STAGING="0"
   fi
 }
 
@@ -262,7 +271,7 @@ main() {
 
   find_staging_log
 
-  local line_m101 line_m103 line_m104 line_m105 line_boundary_pass line_gate_pass
+  local line_m101 line_m103 line_m104 line_m105 line_m106 line_boundary_pass line_gate_pass
   line_m101="$(assert_log_contains "Running M10.1 gate (provider conformance matrix across auth modes)..." "m10_1_gate")"
   line_boundary_pass="$(assert_log_contains "AIMXS boundary verification passed." "aimxs_boundary_pass")"
   if [ "${M10_3_GATE_EXECUTED}" = "1" ]; then
@@ -297,6 +306,14 @@ main() {
     echo "Run PROFILE=staging-full gate once after M10.5 wiring or pass M10_5_GATE_EXECUTED=1 when invoking from CI gate." >&2
     exit 1
   fi
+  line_m106=""
+  if [ "${M10_6_LOG_IN_STAGING}" = "1" ]; then
+    line_m106="$(assert_log_contains "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)..." "m10_6_gate")"
+  elif [ "${M10_6_GATE_EXECUTED}" != "1" ]; then
+    echo "Staging log ${STAGING_GATE_LOG_PATH} does not include M10.6 marker and current run did not declare M10.6 execution." >&2
+    echo "Run PROFILE=staging-full gate once after M10.6 wiring or pass M10_6_GATE_EXECUTED=1 when invoking from CI gate." >&2
+    exit 1
+  fi
 
   local staging_log_sha staging_log_size sdk_sha now_utc
   staging_log_sha="$(sha256_file "${STAGING_GATE_LOG_PATH}")"
@@ -305,13 +322,14 @@ main() {
   now_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
   local assertions_json
-  if [ "${M10_3_LOG_IN_STAGING}" = "1" ] && [ "${M10_4_LOG_IN_STAGING}" = "1" ] && [ "${M10_5_LOG_IN_STAGING}" = "1" ]; then
+  if [ "${M10_3_LOG_IN_STAGING}" = "1" ] && [ "${M10_4_LOG_IN_STAGING}" = "1" ] && [ "${M10_5_LOG_IN_STAGING}" = "1" ] && [ "${M10_6_LOG_IN_STAGING}" = "1" ]; then
     assertions_json="$(
       jq -n \
         --arg line_m101 "${line_m101}" \
         --arg line_m103 "${line_m103}" \
         --arg line_m104 "${line_m104}" \
         --arg line_m105 "${line_m105}" \
+        --arg line_m106 "${line_m106}" \
         --arg line_boundary_pass "${line_boundary_pass}" \
         --arg line_gate_pass "${line_gate_pass}" \
         '[
@@ -336,6 +354,11 @@ main() {
             line: ($line_m105 | tonumber)
           },
           {
+            name: "m10_6_gate_invoked",
+            contains: "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)...",
+            line: ($line_m106 | tonumber)
+          },
+          {
             name: "aimxs_boundary_passed",
             contains: "AIMXS boundary verification passed.",
             line: ($line_boundary_pass | tonumber)
@@ -356,6 +379,7 @@ main() {
         --arg line_m103 "${line_m103}" \
         --arg line_m104 "${line_m104}" \
         --arg line_m105 "${line_m105}" \
+        --arg line_m106 "${line_m106}" \
         '[
           {
             name: "m10_1_gate_invoked",
@@ -376,6 +400,11 @@ main() {
             name: "m10_5_gate_invoked",
             contains: (if ($line_m105 | length) > 0 then "Running M10.5 gate (customer-hosted local AIMXS no-egress proof)..." else "M10_5_GATE_EXECUTED=1 (current gate execution)" end),
             line: (if ($line_m105 | length) > 0 then ($line_m105 | tonumber) else null end)
+          },
+          {
+            name: "m10_6_gate_invoked",
+            contains: (if ($line_m106 | length) > 0 then "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)..." else "M10_6_GATE_EXECUTED=1 (current gate execution)" end),
+            line: (if ($line_m106 | length) > 0 then ($line_m106 | tonumber) else null end)
           },
           {
             name: "aimxs_boundary_passed",
