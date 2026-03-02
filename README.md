@@ -2,19 +2,29 @@
 
 **Policy-driven control plane for AI and agent workflows on Kubernetes.**
 
-Epydios AgentOps Control Plane gives platform and security teams one place to govern AI runtime behavior, enforce policy, capture evidence, and operate safely across environments.
+Epydios AgentOps Control Plane gives platform and security teams one place to govern AI runtime behavior, enforce policy, capture evidence and operate safely across environments.
 
-It is designed as an **enterprise-ready baseline**: strong controls, clear extension contracts, and repeatable promotion gates.
+## Overview
+Profile Provider = “What context/profile should we apply?”
+- Looks at your request fields (tenant, project, environment, sensitivity, etc.)
+- Returns a profileId like EPYDIOS_PROFILE_DEV_FAST_V1 or EPYDIOS_PROFILE_HARDENED_V1
 
-## Why Teams Use It
+Policy Provider = “Given this request + profile, should we allow it?”
+- Approve/deny decision is made
+- Returns: ALLOW or DENY
+- Reasons explaining why are provided
+
+Evidence Provider = “Record what happened.”
+- Stores the decision and related data for audit
+
+It is designed as an **enterprise-ready baseline**: strong controls, clear extension contracts and repeatable promotion gates.
+
+## Features
 
 - **Governed execution**: policy decision + evidence capture are first-class runtime paths.
 - **Extensible by contract**: swap providers without changing control-plane internals.
 - **Security-first operations**: authn/authz, tenancy scoping, audit trails, signed+pinned image admission.
 - **Promotion discipline**: strict staging/prod gates with provenance artifacts.
-- **AIMXS-compatible**: private AIMXS integration through HTTPS provider boundary, not OSS code linkage.
-
-## What You Get Today
 
 ### Core platform
 
@@ -45,11 +55,11 @@ It is designed as an **enterprise-ready baseline**: strong controls, clear exten
 
 ## Deployment Modes (Single Contract Surface)
 
-| Mode | Provider target | Network expectation | Typical buyer |
+| Mode | Provider target | Network expectation | User |
 |---|---|---|---|
 | OSS-only | OSS providers in this repo | In-cluster | teams starting quickly |
 | AIMXS hosted | external AIMXS HTTPS endpoint | outbound to hosted AIMXS | central managed service model |
-| AIMXS customer-hosted | customer AIMXS in customer environment | no internet dependency required | regulated/on-prem buyers |
+| AIMXS customer-hosted | customer AIMXS in customer environment | no internet dependency required | regulated/on-prem users |
 
 Mode overlays live under:
 
@@ -57,18 +67,13 @@ Mode overlays live under:
 - `platform/modes/aimxs-hosted`
 - `platform/modes/aimxs-customer-hosted`
 
-## AIMXS Boundary (Explicit)
+## Adaptive Identity Matrix System (AIMXS)
 
-AIMXS is **not** compiled into OSS control-plane code.
+AIMXS is a runtime decision engine for AI workflows. It evaluates each request against policy, risk, and context, then returns allow/deny outcomes plus structured evidence for audit trails. In practice, it acts as the “governance brain” behind automated agent actions.
 
 - Integration is through `ExtensionProvider` registration and provider contracts.
 - Recommended boundary is HTTPS + mTLS (`MTLSAndBearerTokenSecret` for stricter paths).
 - Entitlement and deny semantics are enforced in runtime policy flow.
-
-Reference docs:
-
-- `docs/aimxs-plugin-slot.md`
-- `docs/runbooks/aimxs-private-sdk-publication.md`
 
 ## Quick Start (Local)
 
@@ -105,18 +110,7 @@ Run preflight QC only:
 - **Data plane state**: Postgres (CNPG)
 - **Ops controls**: monitoring, admission policy, provenance lock checks, promotion gates
 
-Key paths:
-
-- Contracts: `contracts/extensions/v1alpha1/`
-- Runtime: `cmd/control-plane-runtime/`, `internal/runtime/`
-- Provider registry controller: `cmd/extension-provider-registry-controller/`, `internal/extensionprovider/`
-- CI/gates: `platform/ci/bin/`
-- Local verifiers: `platform/local/bin/`
-- Provenance lockfiles: `provenance/`
-
-## Enterprise Readiness Signals
-
-This project intentionally avoids vague "enterprise-grade" claims. Instead, readiness is shown by explicit controls and passing gates.
+## Enterprise Adjacent
 
 Current signal categories:
 
@@ -124,11 +118,11 @@ Current signal categories:
 - strict staging/prod profile gates passing
 - provenance lock checks strict-pass
 - DR + rollback drills captured as machine-readable evidence
-- AIMXS boundary validation and private-release evidence path
+- governance boundary validation and private-release evidence path
 
 ## Comparison (At A Glance)
 
-| Capability area | Typical API wrapper stack | Model-serving-only stack | Epydios AgentOps Control Plane |
+| Capability area | Typical API wrapper stack | Model-serving-only stack | Epydios AgentOps |
 |---|---|---|---|
 | Provider contract model | limited/informal | limited | explicit versioned contracts |
 | Policy + evidence in runtime path | partial/manual | partial | built-in and test-gated |
@@ -137,29 +131,4 @@ Current signal categories:
 | AIMXS private boundary support | custom integration | custom integration | first-class external provider pattern |
 | Promotion evidence (staging/prod strict) | inconsistent | inconsistent | profile-driven strict gate artifacts |
 
-## What This Repo Is / Is Not
-
-This repo **is**:
-
-- the backend control plane and provider contract framework
-
-This repo **is not**:
-
-- a bundled end-user desktop UI module
-- AIMXS source code
-
-Related UI module (separate):
-
-- `../EPYDIOS_AGENTOPS_DESKTOP`
-
-## Licensing and Commercial Model
-
-- OSS control plane stays open and contract-stable.
-- AIMXS remains private and integrates through external provider boundary.
-- This supports a single developer contract with OSS and premium deployment options.
-
-## Repo Hygiene Expectations
-
-- Keep runtime artifacts/log bundles outside this repo (use `EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB`).
-- Keep workspace governance files outside this repo root.
-- Keep only source + manifests + runbooks + lockfiles required for reproducible builds and gates.
+Related UI module (separate): [INSERT LINK]
