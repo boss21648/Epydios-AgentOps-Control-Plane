@@ -29,6 +29,7 @@ RUN_M10_DEPLOYMENT_MODES="${RUN_M10_DEPLOYMENT_MODES:-}"
 RUN_M10_NO_EGRESS_LOCAL_AIMXS="${RUN_M10_NO_EGRESS_LOCAL_AIMXS:-}"
 RUN_M10_ENTITLEMENT_DENY="${RUN_M10_ENTITLEMENT_DENY:-}"
 RUN_M10_AIMXS_PRIVATE_RELEASE="${RUN_M10_AIMXS_PRIVATE_RELEASE:-}"
+RUN_M10_CUSTOMER_HOSTED_PACKAGING="${RUN_M10_CUSTOMER_HOSTED_PACKAGING:-}"
 RUN_M7_INTEGRATION="${RUN_M7_INTEGRATION:-}"
 RUN_M7_BACKUP_RESTORE="${RUN_M7_BACKUP_RESTORE:-}"
 RUN_M7_UPGRADE_SAFETY="${RUN_M7_UPGRADE_SAFETY:-}"
@@ -90,6 +91,7 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_M10_NO_EGRESS_LOCAL_AIMXS 1
       set_default_if_unset RUN_M10_ENTITLEMENT_DENY 1
       set_default_if_unset RUN_M10_AIMXS_PRIVATE_RELEASE 1
+      set_default_if_unset RUN_M10_CUSTOMER_HOSTED_PACKAGING 1
       set_default_if_unset RUN_M7_INTEGRATION 1
       set_default_if_unset RUN_M7_BACKUP_RESTORE 1
       set_default_if_unset RUN_M7_UPGRADE_SAFETY 1
@@ -139,6 +141,7 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_M10_NO_EGRESS_LOCAL_AIMXS 0
       set_default_if_unset RUN_M10_ENTITLEMENT_DENY 0
       set_default_if_unset RUN_M10_AIMXS_PRIVATE_RELEASE 0
+      set_default_if_unset RUN_M10_CUSTOMER_HOSTED_PACKAGING 0
       set_default_if_unset RUN_M7_INTEGRATION 0
       set_default_if_unset RUN_M7_BACKUP_RESTORE 0
       set_default_if_unset RUN_M7_UPGRADE_SAFETY 0
@@ -202,6 +205,7 @@ enforce_full_mode_contract() {
   check_required RUN_M10_NO_EGRESS_LOCAL_AIMXS 1
   check_required RUN_M10_ENTITLEMENT_DENY 1
   check_required RUN_M10_AIMXS_PRIVATE_RELEASE 1
+  check_required RUN_M10_CUSTOMER_HOSTED_PACKAGING 1
   check_required RUN_M7_INTEGRATION 1
   check_required RUN_M7_BACKUP_RESTORE 1
   check_required RUN_M7_UPGRADE_SAFETY 1
@@ -556,6 +560,11 @@ main() {
     M10_5_GATE_EXECUTED="${m10_5_gate_executed}" \
     M10_6_GATE_EXECUTED="${m10_6_gate_executed}" \
       "${REPO_ROOT}/platform/local/bin/verify-m10-aimxs-private-release.sh"
+  fi
+
+  if [ "${RUN_M10_CUSTOMER_HOSTED_PACKAGING}" = "1" ]; then
+    echo "Running M10.7 gate (customer-hosted AIMXS packaging evidence: signed package refs + air-gapped install/update + support/SLA)..."
+    "${REPO_ROOT}/platform/local/bin/verify-m10-customer-hosted-packaging.sh"
   fi
 
   if [ "${RUN_ROTATION_CHECK}" = "1" ]; then

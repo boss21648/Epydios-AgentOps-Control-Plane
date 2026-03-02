@@ -97,6 +97,12 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - runs `platform/local/bin/verify-m10-aimxs-private-release.sh`
     - validates first private AIMXS SDK/provider release evidence and staging strict-proof assertions
     - reads `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/private-release-inputs.vars` by default for private release metadata (falls back to repo-local path only if present)
+  - M10.7 AIMXS customer-hosted packaging evidence verification:
+    - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=1` in full mode (required)
+    - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=0` default in fast mode
+    - runs `platform/local/bin/verify-m10-customer-hosted-packaging.sh`
+    - validates customer-hosted packaging references (signed image/artifact + SBOM + air-gapped install/update bundles + support/SLA docs)
+    - reads `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default for private customer-hosted release metadata (falls back to repo-local path only if present)
   - M9 runtime authz checks in full mode (required, no skips):
     - `RUN_M9_AUTHN_AUTHZ=1`
     - `RUN_M9_AUTHZ_TENANCY=1`
@@ -111,7 +117,8 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - `RUN_M10_NO_EGRESS_LOCAL_AIMXS=1`
     - `RUN_M10_ENTITLEMENT_DENY=1`
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=1`
-    - Full mode enforces M10.1 + M10.2 + M10.3 + M10.4 + M10.5 + M10.6 and exits if overridden to disabled value.
+    - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=1`
+    - Full mode enforces M10.1 + M10.2 + M10.3 + M10.4 + M10.5 + M10.6 + M10.7 and exits if overridden to disabled value.
   - M7 reliability suite in full mode (required, no skips):
     - `RUN_M7_INTEGRATION=1` (M0->M5 critical path through `platform/local/bin/verify-m7-integration.sh`)
     - `RUN_M7_BACKUP_RESTORE=1` (M7.2 CNPG backup/restore drill)

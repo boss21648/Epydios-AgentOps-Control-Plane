@@ -455,6 +455,30 @@ Fast path when runtime baseline is already healthy:
 RUN_M5_BASELINE=0 ./platform/local/bin/verify-m10-entitlement-deny.sh
 ```
 
+### M10.7 AIMXS customer-hosted packaging evidence verification
+
+Validates release-grade packaging evidence for customer-hosted AIMXS mode:
+- consumes private metadata inputs from `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default
+- requires strict staging log markers for M10.4/M10.5/M10.6 and full-gate pass
+- asserts signed packaging references, SBOM/signature references, air-gapped install/update bundle refs, and support/SLA references
+- verifies required runbooks:
+  - `docs/runbooks/aimxs-customer-hosted-airgap.md`
+  - `docs/runbooks/aimxs-customer-hosted-support-boundary.md`
+- writes evidence to:
+  - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json`
+
+```bash
+./platform/local/bin/verify-m10-customer-hosted-packaging.sh
+```
+
+Override input/evidence paths explicitly:
+
+```bash
+INPUT_FILE=../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars \
+OUTPUT_DIR=../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs \
+./platform/local/bin/verify-m10-customer-hosted-packaging.sh
+```
+
 ### M7.1 integration verification (M0->M5 critical path)
 
 Runs one end-to-end integration gate across milestones M0 through M5:
@@ -810,6 +834,7 @@ WITH_SYSTEM_SMOKETEST=1 ./platform/local/bin/bootstrap-k3d.sh
 - `platform/local/bin/verify-m10-deployment-modes.sh` validates three deployment-mode routing transitions (`oss-only`, `aimxs-hosted`, `aimxs-customer-hosted`) under one provider contract
 - `platform/local/bin/verify-m10-no-egress-local-aimxs.sh` validates customer-hosted local AIMXS mode under scoped no-egress network policy constraints
 - `platform/local/bin/verify-m10-entitlement-deny.sh` validates runtime entitlement deny-path assertions and licensed ALLOW behavior on AIMXS policy routing
+- `platform/local/bin/verify-m10-customer-hosted-packaging.sh` validates customer-hosted AIMXS packaging evidence requirements (signed package refs, SBOM/signature refs, air-gapped install/update bundles, and support/SLA references)
 - `platform/local/bin/verify-m7-integration.sh` runs an end-to-end M0->M5 critical-path integration gate (optionally includes M7.2)
 - `platform/local/bin/verify-m7-cnpg-backup-restore.sh` runs the M7.2 CNPG backup/restore drill
 - `platform/local/bin/verify-m7-upgrade-safety.sh` runs the M7.3 N-1->N upgrade safety gate
