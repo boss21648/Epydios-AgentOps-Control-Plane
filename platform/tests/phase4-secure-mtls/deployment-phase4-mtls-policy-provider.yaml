@@ -23,13 +23,13 @@ spec:
       serviceAccountName: mtls-test-provider
       containers:
         - name: mtls-provider
-          image: ghcr.io/epydios/epydios-mtls-capabilities-provider:0.1.0
+          image: ghcr.io/epydios/epydios-mtls-capabilities-provider:0.2.0
           imagePullPolicy: IfNotPresent
           args:
             - -listen=:8443
             - -provider-type=PolicyProvider
             - -provider-id=phase4-mtls-policy-provider
-            - -provider-version=0.1.0
+            - -provider-version=0.2.0
             - -contract-version=v1alpha1
             - -tls-cert-file=/tls/tls.crt
             - -tls-key-file=/tls/tls.key

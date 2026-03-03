@@ -28,6 +28,6 @@ spec:
               entries:
                 - keyless:
                     issuer: https://token.actions.githubusercontent.com
-                    subjectRegExp: ^https://github.com/epydios/epydios-ai-control-plane/.github/workflows/release-images-ghcr.yml@refs/tags/.+$
+                    subjectRegExp: ^https://github.com/Epydios/Epydios-AgentOps-Desktop/.github/workflows/release-images-ghcr.yml@refs/tags/.+$
                     rekor:
                       url: https://rekor.sigstore.dev

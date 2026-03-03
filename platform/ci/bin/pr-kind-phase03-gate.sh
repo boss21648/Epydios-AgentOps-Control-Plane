@@ -64,7 +64,7 @@ MONITORING_RELEASE_NAME="${MONITORING_RELEASE_NAME:-}"
 RUN_ADMISSION_ENFORCEMENT_CHECK="${RUN_ADMISSION_ENFORCEMENT_CHECK:-}"
 APPLY_SIGNED_IMAGE_POLICY="${APPLY_SIGNED_IMAGE_POLICY:-}"
 REQUIRE_SIGNED_IMAGE_POLICY="${REQUIRE_SIGNED_IMAGE_POLICY:-}"
-RUN_AIMXS_BOUNDARY_CHECK="${RUN_AIMXS_BOUNDARY_CHECK:-}"
+RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK="${RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK:-${RUN_AIMXS_BOUNDARY_CHECK:-}}"
 
 phase04_cleanup_secure_fixtures="1"
 secure_fixture_cleanup_done="0"
@@ -135,7 +135,7 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_ADMISSION_ENFORCEMENT_CHECK 1
       set_default_if_unset APPLY_SIGNED_IMAGE_POLICY 1
       set_default_if_unset REQUIRE_SIGNED_IMAGE_POLICY 1
-      set_default_if_unset RUN_AIMXS_BOUNDARY_CHECK 1
+      set_default_if_unset RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK 1
       ;;
     fast)
       # Fast mode favors iteration speed. Any explicitly provided env vars still override these defaults.
@@ -194,7 +194,7 @@ apply_gate_mode_defaults() {
       set_default_if_unset RUN_ADMISSION_ENFORCEMENT_CHECK 0
       set_default_if_unset APPLY_SIGNED_IMAGE_POLICY auto
       set_default_if_unset REQUIRE_SIGNED_IMAGE_POLICY 0
-      set_default_if_unset RUN_AIMXS_BOUNDARY_CHECK 0
+      set_default_if_unset RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK 0
       ;;
     *)
       echo "Unsupported GATE_MODE='${GATE_MODE}' (expected full|fast)." >&2
@@ -246,7 +246,7 @@ enforce_full_mode_contract() {
   check_required RUN_ADMISSION_ENFORCEMENT_CHECK 1
   check_required APPLY_SIGNED_IMAGE_POLICY 1
   check_required REQUIRE_SIGNED_IMAGE_POLICY 1
-  check_required RUN_AIMXS_BOUNDARY_CHECK 1
+  check_required RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK 1
   check_required RUN_PROVENANCE_CHECK 1
   check_required PROVENANCE_STRICT 1
 
@@ -345,7 +345,7 @@ main() {
   if [ "${RUN_PROVENANCE_CHECK}" = "1" ]; then
     require_cmd go
   fi
-  if [ "${RUN_AIMXS_BOUNDARY_CHECK}" = "1" ]; then
+  if [ "${RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK}" = "1" ]; then
     require_cmd rg
   fi
 
@@ -552,7 +552,7 @@ main() {
   fi
 
   if [ "${RUN_M10_NO_EGRESS_LOCAL_AIMXS}" = "1" ]; then
-    echo "Running M10.5 gate (customer-hosted local AIMXS no-egress proof)..."
+    echo "Running M10.5 gate (customer-hosted local premium-provider no-egress proof)..."
     local run_m5_baseline_for_m10_no_egress=1
     if [ "${RUN_M7_INTEGRATION}" = "1" ] || [ "${RUN_PHASE_RUNTIME}" = "1" ] || [ "${RUN_M9_AUTHN_AUTHZ}" = "1" ] || [ "${RUN_M9_AUTHZ_TENANCY}" = "1" ] || [ "${RUN_M9_RBAC_MATRIX}" = "1" ] || [ "${RUN_M10_PROVIDER_CONFORMANCE}" = "1" ] || [ "${RUN_M10_POLICY_GRANT_ENFORCEMENT}" = "1" ] || [ "${RUN_M10_DEPLOYMENT_MODES}" = "1" ]; then
       run_m5_baseline_for_m10_no_egress=0
@@ -568,7 +568,7 @@ main() {
   fi
 
   if [ "${RUN_M10_ENTITLEMENT_DENY}" = "1" ]; then
-    echo "Running M10.6 gate (AIMXS entitlement deny path + licensed ALLOW assertions)..."
+    echo "Running M10.6 gate (premium-provider entitlement deny path + licensed ALLOW assertions)..."
     local run_m5_baseline_for_m10_entitlement=1
     if [ "${RUN_M7_INTEGRATION}" = "1" ] || [ "${RUN_PHASE_RUNTIME}" = "1" ] || [ "${RUN_M9_AUTHN_AUTHZ}" = "1" ] || [ "${RUN_M9_AUTHZ_TENANCY}" = "1" ] || [ "${RUN_M9_RBAC_MATRIX}" = "1" ] || [ "${RUN_M10_PROVIDER_CONFORMANCE}" = "1" ] || [ "${RUN_M10_POLICY_GRANT_ENFORCEMENT}" = "1" ] || [ "${RUN_M10_DEPLOYMENT_MODES}" = "1" ] || [ "${RUN_M10_NO_EGRESS_LOCAL_AIMXS}" = "1" ]; then
       run_m5_baseline_for_m10_entitlement=0
@@ -584,7 +584,7 @@ main() {
   fi
 
   if [ "${RUN_M10_AIMXS_PRIVATE_RELEASE}" = "1" ]; then
-    echo "Running M10.2 gate (AIMXS first private release evidence + staging strict proof)..."
+    echo "Running M10.2 gate (first private provider release evidence + staging strict proof)..."
     M10_3_GATE_EXECUTED="${m10_3_gate_executed}" \
     M10_4_GATE_EXECUTED="${m10_4_gate_executed}" \
     M10_5_GATE_EXECUTED="${m10_5_gate_executed}" \
@@ -593,7 +593,7 @@ main() {
   fi
 
   if [ "${RUN_M10_CUSTOMER_HOSTED_PACKAGING}" = "1" ]; then
-    echo "Running M10.7 gate (customer-hosted AIMXS packaging evidence: signed package refs + air-gapped install/update + support/SLA)..."
+    echo "Running M10.7 gate (customer-hosted premium-provider packaging evidence: signed package refs + air-gapped install/update + support/SLA)..."
     "${REPO_ROOT}/platform/local/bin/verify-m10-customer-hosted-packaging.sh"
   fi
 
@@ -659,8 +659,8 @@ main() {
       "${REPO_ROOT}/platform/local/bin/verify-m12-failure-injection-rollback.sh"
   fi
 
-  if [ "${RUN_AIMXS_BOUNDARY_CHECK}" = "1" ]; then
-    echo "Running AIMXS external-boundary verification..."
+  if [ "${RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK}" = "1" ]; then
+    echo "Running optional external provider boundary verification..."
     "${REPO_ROOT}/platform/local/bin/verify-aimxs-boundary.sh"
   fi
 

@@ -20,7 +20,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	cpruntime "github.com/epydios/epydios-ai-control-plane/internal/runtime"
+	cpruntime "github.com/Epydios/Epydios-AgentOps-Desktop/internal/runtime"
 )
 
 type Config struct {

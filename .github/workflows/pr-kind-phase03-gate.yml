@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   kind-phase03-gate:
-    name: QC + Full Gate (M7 + hardening + AIMXS boundary) (kind)
+    name: QC + Full Gate (M7 + hardening + optional provider boundary) (kind)
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
@@ -45,7 +45,7 @@ jobs:
       AUTO_INSTALL_MONITORING_STACK: "0"
       MONITORING_NAMESPACE: "monitoring"
       MONITORING_RELEASE_NAME: "kube-prometheus-stack"
-      RUN_AIMXS_BOUNDARY_CHECK: "1"
+      RUN_OPTIONAL_PROVIDER_BOUNDARY_CHECK: "1"
       USE_LOCAL_SUBSTRATE: "0"
       AUTO_INSTALL_CERT_MANAGER: "1"
       FORCE_CONFLICTS: "1"

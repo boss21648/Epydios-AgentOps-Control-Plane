@@ -247,7 +247,7 @@ func parseFlags() config {
 	flag.StringVar(&cfg.ListenAddr, "listen", ":8443", "listen address")
 	flag.StringVar(&cfg.ProviderType, "provider-type", "ProfileResolver", "provider type to advertise")
 	flag.StringVar(&cfg.ProviderID, "provider-id", "mtls-provider", "provider id to advertise")
-	flag.StringVar(&cfg.ProviderVersion, "provider-version", "0.1.0", "provider version to advertise")
+	flag.StringVar(&cfg.ProviderVersion, "provider-version", "0.2.0", "provider version to advertise")
 	flag.StringVar(&cfg.ContractVersion, "contract-version", "v1alpha1", "contract version to advertise")
 	flag.StringVar(&cfg.CapabilitiesRaw, "capabilities", "", "comma-separated capabilities override")
 	flag.StringVar(&cfg.TLSCertFile, "tls-cert-file", "/tls/tls.crt", "server TLS certificate file")

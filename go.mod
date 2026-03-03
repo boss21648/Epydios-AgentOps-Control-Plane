@@ -1,4 +1,4 @@
-module github.com/epydios/epydios-ai-control-plane
+module github.com/Epydios/Epydios-AgentOps-Desktop
 
 go 1.25.0
 

@@ -149,7 +149,7 @@ func applyDefaults(cfg *Config) {
 		cfg.ProviderID = "oss-evidence-memory"
 	}
 	if cfg.ProviderVersion == "" {
-		cfg.ProviderVersion = "0.1.0"
+		cfg.ProviderVersion = "0.2.0"
 	}
 	if cfg.StorageURIBase == "" {
 		cfg.StorageURIBase = "memory://epydios-oss-evidence"

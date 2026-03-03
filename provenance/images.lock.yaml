@@ -5,6 +5,7 @@ notes:
   - Prefer OCI digest pinning for all controllers and data plane images.
   - Local Epydios images are listed with manifest/source paths so digests can be filled after CI push.
   - Replace `sha256:TBD` only after confirming the pushed tag matches the exact built commit.
+  - After every tagged release, run `platform/ci/bin/sync-release-digests-to-lockfile.sh` using release artifacts before treating this lockfile as release-authoritative.
 images:
   - component: cloudnative-pg-operator
     phase: phase-00-foundation-data
@@ -139,8 +140,8 @@ images:
   - component: epydios-extension-provider-registry-controller
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-extension-provider-registry-controller
-    tag: "0.1.0"
-    digest: sha256:f2376d136d7327305ff42efa2f73c4f9504fee0cb3c8fcd6d96b81ffbc8faeb5
+    tag: "0.2.0"
+    digest: sha256:af15ae4cdddcdfdb2a3e9070abe86a221553bd5e896f6d9574abdab8485d227d
     source: epydios-ai-control-plane
     source_path: cmd/extension-provider-registry-controller
     manifest_paths:
@@ -154,8 +155,8 @@ images:
   - component: epydios-oss-profile-static-resolver
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-oss-profile-static-resolver
-    tag: "0.1.0"
-    digest: sha256:c1d71bdee2ce773692d4022f7d6408da189b16573eb6590f5f9b3cdbe03c2171
+    tag: "0.2.0"
+    digest: sha256:0681313aea4fbade49d92d6900de4e8bf16dfb28802feef9e0c4023f8c47ab25
     source: epydios-ai-control-plane
     source_path: cmd/profile-resolver-provider
     manifest_paths:
@@ -170,8 +171,8 @@ images:
   - component: epydios-control-plane-runtime
     phase: phase-01-control-plane-extensibility
     image: ghcr.io/epydios/epydios-control-plane-runtime
-    tag: "0.1.0"
-    digest: sha256:65ef3defe7d3fc990f8118f9ee52b17965302f30ea0eeea9278c1b27361cf1b1
+    tag: "0.2.0"
+    digest: sha256:ca19da830596659931ae1c4444dcf399c124f93e3f33c384c7c705dce91e7f81
     source: epydios-ai-control-plane
     source_path: cmd/control-plane-runtime
     manifest_paths:
@@ -185,8 +186,8 @@ images:
   - component: epydios-oss-policy-opa-provider
     phase: phase-02-oss-policy-provider
     image: ghcr.io/epydios/epydios-oss-policy-opa-provider
-    tag: "0.1.0"
-    digest: sha256:ef0d3e81371a02fd78c82f312ca7b0b25b241718d9a5350d7534361eb532b44a
+    tag: "0.2.0"
+    digest: sha256:0da915c2a4e571404dffbe63168b017f1176f8d5f4387a4e4d91317d9787c3cc
     source: epydios-ai-control-plane
     source_path: cmd/policy-provider-opa-adapter
     manifest_paths:
@@ -200,8 +201,8 @@ images:
   - component: epydios-oss-evidence-memory-provider
     phase: phase-02-oss-evidence-provider
     image: ghcr.io/epydios/epydios-oss-evidence-memory-provider
-    tag: "0.1.0"
-    digest: sha256:ee30c7812d8e26c70118021a96cffc995118b8b5585967e6fbcdfafb8d3b80ea
+    tag: "0.2.0"
+    digest: sha256:d3839d68b405fc841fdfa40bf5eae3843eaa874d3affd80154182c83d761a84f
     source: epydios-ai-control-plane
     source_path: cmd/evidence-provider-memory
     manifest_paths:
@@ -215,8 +216,8 @@ images:
   - component: epydios-mtls-capabilities-provider
     phase: phase-02-mtls-provider-discovery
     image: ghcr.io/epydios/epydios-mtls-capabilities-provider
-    tag: "0.1.0"
-    digest: sha256:8d026d286d9fa58a3544bfdd74aa9ea0d7818aa09a3e74913378111379eab5c9
+    tag: "0.2.0"
+    digest: sha256:a6131127505dce19905a7c63369222258248e18846140dd98f001813163b9b62
     source: epydios-ai-control-plane
     source_path: cmd/mtls-capabilities-provider
     manifest_paths:

@@ -104,7 +104,7 @@ Example flow (per image):
 
 ```bash
 IMAGE=ghcr.io/epydios/epydios-extension-provider-registry-controller
-TAG=0.1.0
+TAG=0.2.0
 crane digest "${IMAGE}:${TAG}"
 ```
 

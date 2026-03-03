@@ -8,7 +8,7 @@ metadata:
 spec:
   project: epydios-platform
   source:
-    repoURL: https://github.com/epydios/epydios-ai-control-plane.git
+    repoURL: https://github.com/Epydios/Epydios-AgentOps-Desktop.git
     targetRevision: main
     path: platform/base
   destination:

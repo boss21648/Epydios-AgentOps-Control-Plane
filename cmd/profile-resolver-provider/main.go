@@ -94,7 +94,7 @@ func main() {
 		cfg.ProviderID = "oss-profile-static"
 	}
 	if cfg.ProviderVersion == "" {
-		cfg.ProviderVersion = "0.1.0"
+		cfg.ProviderVersion = "0.2.0"
 	}
 	if cfg.DefaultProfileID == "" {
 		cfg.DefaultProfileID = "EPYDIOS_PROFILE_BASELINE_V1"

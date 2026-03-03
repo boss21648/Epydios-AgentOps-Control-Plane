@@ -2,7 +2,7 @@
 
 **Policy-driven control plane for AI and agent workflows on Kubernetes.**
 
-AgentOps Desktop is an open source control plane for running agents with guardrails that are enforceable and auditable. It evaluates each agent action against a policy provider, selects the right profile and extensions for the context and records a structured evidence trail. Designed to be Kubernetes-native, fast and composable, it gives you a clean provider interface so you can swap policy engines, evidence stores and organization-specific decision logic without rewriting your runtime.
+AgentOps Desktop is an open source control plane for governing agent actions with enforceable policy and auditable evidence. It evaluates each agent action against a policy provider, selects the right profile and extensions for the context, and records a structured evidence trail. Kubernetes-native, fast and composable, it provides a clean provider interface so you can swap policy engines, evidence stores and organization-specific decision logic without rewriting your runtime.
 
 ## Overview
 Profile Provider = “What context/profile should we apply?”
@@ -108,4 +108,11 @@ Current signal categories:
 | private boundary support (CONTACT US) | custom integration | custom integration | first-class external provider pattern |
 | Promotion evidence (staging/prod strict) | inconsistent | inconsistent | profile-driven strict gate artifacts |
 
-Related UI module (separate): [LINK WILL BE HERE WHEN AVAILABLE]
+Related UI module: separate repository (to be announced).
+
+## Community
+
+- Contributing: `CONTRIBUTING.md`
+- Security policy: `SECURITY.md`
+- Trademark policy: `TRADEMARK.md`
+- Third-party notices: `THIRD_PARTY_NOTICES.md`
