@@ -53,13 +53,13 @@ It is designed as an **enterprise-ready baseline**: strong controls, clear exten
 - Admission enforcement for immutable/signed images
 - DR game day + rollback/failure-injection verification paths
 
-## Deployment Modes (Single Contract Surface)
+## Deployment Modes
 
 | Mode | Provider target | Network expectation | User |
 |---|---|---|---|
 | OSS-only | OSS providers in this repo | In-cluster | teams starting quickly |
 | AIMXS hosted | external AIMXS HTTPS endpoint | outbound to hosted AIMXS | central managed service model |
-| AIMXS customer-hosted | customer AIMXS in customer environment | no internet dependency required | regulated/on-prem |
+| AIMXS local | AIMXS in stack/library | no internet dependency | regulated/on-premises |
 
 
 ## Adaptive Identity Matrix System (AIMXS)
@@ -70,7 +70,7 @@ AIMXS is a runtime decision engine for AI workflows. It evaluates each request a
 * Recommended boundary is HTTPS + mTLS (`MTLSAndBearerTokenSecret` for stricter paths).
 * Entitlement and deny semantics are enforced in runtime policy flow.
 
-NOTE: There are two systems, the baseline system here is enforcing real policy decisions. This is NOT crippleware. Everything is the same between the baseline and AIMXS versions, except the decision kernels. 
+NOTE: There are two systems, the OSS baseline system here is enforcing real policy decisions. Everything is the same between the baseline and AIMXS versions, except the decision kernels. 
 
 ### Baseline Features
 
@@ -173,7 +173,7 @@ Current signal categories:
 - DR + rollback drills captured as machine-readable evidence
 - governance boundary validation and private-release evidence path
 
-## Comparison (At A Glance)
+## Comparison At A Glance
 
 | Capability area | Typical API wrapper stack | Model-serving-only stack | Epydios AgentOps |
 |---|---|---|---|
@@ -184,4 +184,4 @@ Current signal categories:
 | AIMXS private boundary support | custom integration | custom integration | first-class external provider pattern |
 | Promotion evidence (staging/prod strict) | inconsistent | inconsistent | profile-driven strict gate artifacts |
 
-Related UI module (separate): [INSERT LINK]
+Related UI module (separate): [LINK WILL BE HERE WHEN AVAILABLE]
