@@ -148,7 +148,7 @@ images:
       - platform/system/controllers/extension-provider-registry-controller/deployment.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: true
     status: release-synced
@@ -164,7 +164,7 @@ images:
       - platform/system/providers/oss-profile-static/extensionprovider.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: true
     status: release-synced
@@ -179,7 +179,7 @@ images:
       - platform/system/controllers/orchestration-runtime/deployment.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Replace digest with published immutable digest before release sign-off.
     required: true
     status: release-synced
@@ -194,7 +194,7 @@ images:
       - platform/providers/oss-policy-opa/deployment.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
     status: release-synced
@@ -209,7 +209,7 @@ images:
       - platform/providers/oss-evidence-memory/deployment.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
     status: release-synced
@@ -225,7 +225,7 @@ images:
       - platform/tests/provider-discovery-mtls/deployment-mtls-bearer-provider.yaml
     build_context: .
     build_notes:
-      - Build/push in CI from `EPYDIOS_AI_CONTROL_PLANE` repo.
+      - Build/push in CI from `Epydios-AgentOps-Control-Plane` repo.
       - Fill digest after push using `crane digest` or `docker buildx imagetools inspect`.
     required: false
     status: release-synced

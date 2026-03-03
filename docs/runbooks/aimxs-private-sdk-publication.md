@@ -53,22 +53,22 @@ Define the release process for the private AIMXS SDK/reference adapter while kee
 ## OSS Evidence Artifacts (M10.2)
 
 1. Input metadata:
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/private-release-inputs.vars` (default)
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/private-release-inputs.vars` (default)
    - `provenance/aimxs/private-release-inputs.vars` (repo-local fallback for offline/local-only usage)
 2. Generated evidence:
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-<timestamp>.json`
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-<timestamp>.json.sha256`
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-latest.json`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-<timestamp>.json`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-<timestamp>.json.sha256`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-latest.json`
 
 ## OSS Evidence Artifacts (M10.7)
 
 1. Input metadata:
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` (default)
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` (default)
    - `provenance/aimxs/customer-hosted-release-inputs.vars` (repo-local fallback for offline/local-only usage)
 2. Generated evidence:
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json`
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json.sha256`
-   - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-latest.json`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json.sha256`
+   - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-latest.json`
 
 ## Rollback
 

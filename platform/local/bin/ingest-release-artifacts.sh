@@ -4,7 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
-NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB}"
+REPO_DIRNAME="$(basename "${REPO_ROOT}")"
+NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/${REPO_DIRNAME}_NON_GITHUB}"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-}"
 DIGEST_MANIFEST_BASENAME="${DIGEST_MANIFEST_BASENAME:-release-image-digests.json}"
@@ -28,7 +29,7 @@ Required input:
   - ARTIFACT_DIR containing ${DIGEST_MANIFEST_BASENAME}
 
 What this does:
-  1) Archives release artifacts to EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/<timestamp>/ by default
+  1) Archives release artifacts to Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/releases/<timestamp>/ by default
   2) Syncs provenance/images.lock.yaml from release digest manifest
   3) Runs strict provenance lock verification
 EOF

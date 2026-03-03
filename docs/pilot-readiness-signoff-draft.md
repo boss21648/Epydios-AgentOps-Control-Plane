@@ -40,7 +40,7 @@ It is the human-facing companion to `docs/pilot-readiness-signoff-draft.json`.
 7. Real tag release evidence pass (M8.2 / M11 release closure)
    - Command: `.github/workflows/release-images-ghcr.yml` on real tag (`v0.1.0`)
    - Must include: release digest artifacts, lockfile sync artifact, ingest + strict lock verification.
-   - Status: `pass` (artifacts archived under `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-image-digests/`, `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-images-lockfile-sync/`, and `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/`).
+   - Status: `pass` (artifacts archived under `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/release-image-digests/`, `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/release-images-lockfile-sync/`, and `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/releases/20260301T181757Z/`).
 
 ## Draft SLOs (Pilot)
 

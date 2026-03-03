@@ -4,7 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
-NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB}"
+REPO_DIRNAME="$(basename "${REPO_ROOT}")"
+NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/${REPO_DIRNAME}_NON_GITHUB}"
 
 NAMESPACE="${NAMESPACE:-epydios-system}"
 RUNTIME_DEPLOYMENT="${RUNTIME_DEPLOYMENT:-orchestration-runtime}"

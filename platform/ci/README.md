@@ -96,13 +96,13 @@ This directory contains CI entrypoint scripts invoked by GitHub Actions.
     - `RUN_M10_AIMXS_PRIVATE_RELEASE=0` default in fast mode
     - runs `platform/local/bin/verify-m10-aimxs-private-release.sh`
     - validates first private AIMXS SDK/provider release evidence and staging strict-proof assertions
-    - reads `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/private-release-inputs.vars` by default for private release metadata (falls back to repo-local path only if present)
+    - reads `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/private-release-inputs.vars` by default for private release metadata (falls back to repo-local path only if present)
   - M10.7 AIMXS customer-hosted packaging evidence verification:
     - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=1` in full mode (required)
     - `RUN_M10_CUSTOMER_HOSTED_PACKAGING=0` default in fast mode
     - runs `platform/local/bin/verify-m10-customer-hosted-packaging.sh`
     - validates customer-hosted packaging references (signed image/artifact + SBOM + air-gapped install/update bundles + support/SLA docs)
-    - reads `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default for private customer-hosted release metadata (falls back to repo-local path only if present)
+    - reads `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default for private customer-hosted release metadata (falls back to repo-local path only if present)
   - M12.1 runtime SLO/SLI + error-budget verification:
     - `RUN_M12_SLO_SLI_PACK=1` in full mode (required)
     - `RUN_M12_SLO_SLI_PACK=0` default in fast mode

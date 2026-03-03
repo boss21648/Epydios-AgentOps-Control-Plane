@@ -458,14 +458,14 @@ RUN_M5_BASELINE=0 ./platform/local/bin/verify-m10-entitlement-deny.sh
 ### M10.7 AIMXS customer-hosted packaging evidence verification
 
 Validates release-grade packaging evidence for customer-hosted AIMXS mode:
-- consumes private metadata inputs from `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default
+- consumes private metadata inputs from `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars` by default
 - requires strict staging log markers for M10.4/M10.5/M10.6 and full-gate pass
 - asserts signed packaging references, SBOM/signature references, air-gapped install/update bundle refs, and support/SLA references
 - verifies required runbooks:
   - `docs/runbooks/aimxs-customer-hosted-airgap.md`
   - `docs/runbooks/aimxs-customer-hosted-support-boundary.md`
 - writes evidence to:
-  - `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json`
+  - `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-7-customer-hosted-packaging-evidence-<timestamp>.json`
 
 ```bash
 ./platform/local/bin/verify-m10-customer-hosted-packaging.sh
@@ -474,8 +474,8 @@ Validates release-grade packaging evidence for customer-hosted AIMXS mode:
 Override input/evidence paths explicitly:
 
 ```bash
-INPUT_FILE=../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars \
-OUTPUT_DIR=../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs \
+INPUT_FILE=../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars \
+OUTPUT_DIR=../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs \
 ./platform/local/bin/verify-m10-customer-hosted-packaging.sh
 ```
 

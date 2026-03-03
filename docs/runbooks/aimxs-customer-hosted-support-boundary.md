@@ -61,7 +61,7 @@ The customer-hosted packaging verifier requires explicit references for:
 
 These values are supplied in:
 
-- `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars`
+- `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars`
 
 ## Verification Hook
 

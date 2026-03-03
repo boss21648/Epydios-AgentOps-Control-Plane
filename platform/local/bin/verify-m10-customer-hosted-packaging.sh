@@ -4,7 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
-NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB}"
+REPO_DIRNAME="$(basename "${REPO_ROOT}")"
+NON_GITHUB_ROOT="${NON_GITHUB_ROOT:-${WORKSPACE_ROOT}/${REPO_DIRNAME}_NON_GITHUB}"
 
 INPUT_FILE="${INPUT_FILE:-}"
 OUTPUT_DIR="${OUTPUT_DIR:-}"
@@ -116,7 +117,7 @@ load_inputs() {
 
   if [ ! -f "${INPUT_FILE}" ]; then
     echo "Missing customer-hosted packaging inputs file: ${INPUT_FILE}" >&2
-    echo "Create ../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars" >&2
+    echo "Create ../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/customer-hosted-release-inputs.vars" >&2
     exit 1
   fi
 

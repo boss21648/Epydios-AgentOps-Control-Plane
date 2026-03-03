@@ -12,7 +12,7 @@ publishing operational logs or private AIMXS evidence by accident.
 Default external location:
 
 ```bash
-../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/
+../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/
 ```
 
 Keep these in-repo files as authoritative sources:

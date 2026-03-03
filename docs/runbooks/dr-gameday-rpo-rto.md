@@ -36,7 +36,7 @@ These can be overridden per environment profile:
 
 Default path:
 
-- `../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/dr-gameday/`
+- `../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/dr-gameday/`
 
 Artifacts:
 

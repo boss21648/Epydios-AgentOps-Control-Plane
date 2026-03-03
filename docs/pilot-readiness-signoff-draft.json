@@ -76,11 +76,11 @@
         "internal/aimxs/slot.go",
         "docs/aimxs-plugin-slot.md",
         "examples/aimxs/extensionprovider-policy-mtls-bearer.yaml",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/private-release-inputs.vars",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-latest.json",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json"
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/private-release-inputs.vars",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/aimxs/m10-2-private-release-evidence-latest.json",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json"
       ],
       "notes": [
         "First private AIMXS release evidence is archived (artifact digest mode) with strict staging profile proof.",
@@ -94,16 +94,16 @@
       "status": "pass",
       "artifacts": [
         ".github/workflows/release-images-ghcr.yml",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-image-digests/",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/release-images-lockfile-sync/",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/release-image-digests/",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/release-images-lockfile-sync/",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/releases/20260301T181757Z/",
         "provenance/images.lock.yaml",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.sha256",
-        "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.proof.json"
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.sha256",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log.proof.json",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.sha256",
+        "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log.proof.json"
       ],
       "notes": [
         "Release artifacts imported and lockfile ingested via platform/local/bin/ingest-release-artifacts.sh.",
@@ -152,9 +152,9 @@
   ],
   "evidence": {
     "release_tag": "v0.1.0",
-    "release_artifact_bundle": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/releases/20260301T181757Z/",
-    "latest_staging_profile_log": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
-    "latest_prod_profile_log": "../EPYDIOS_AI_CONTROL_PLANE_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log"
+    "release_artifact_bundle": "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/releases/20260301T181757Z/",
+    "latest_staging_profile_log": "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/staging-full-gate-20260301T183622Z.log",
+    "latest_prod_profile_log": "../Epydios-AgentOps-Control-Plane_NON_GITHUB/provenance/promotion/prod-full-gate-20260301T184620Z.log"
   },
   "approvals": {
     "engineering_lead": "approved-2026-03-01",
