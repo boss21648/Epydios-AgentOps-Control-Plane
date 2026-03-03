@@ -59,77 +59,74 @@ It is designed as an **enterprise-ready baseline**: strong controls, clear exten
 |---|---|---|---|
 | OSS-only | OSS providers in this repo | In-cluster | teams starting quickly |
 | AIMXS hosted | external AIMXS HTTPS endpoint | outbound to hosted AIMXS | central managed service model |
-| AIMXS customer-hosted | customer AIMXS in customer environment | no internet dependency required | regulated/on-prem users |
+| AIMXS customer-hosted | customer AIMXS in customer environment | no internet dependency required | regulated/on-prem |
 
-Mode overlays live under:
-
-- `platform/modes/oss-only`
-- `platform/modes/aimxs-hosted`
-- `platform/modes/aimxs-customer-hosted`
 
 ## Adaptive Identity Matrix System (AIMXS)
 
 AIMXS is a runtime decision engine for AI workflows. It evaluates each request against policy, risk, and context, then returns allow/deny outcomes plus structured evidence for audit trails. In practice, it acts as the “governance brain” behind automated agent actions.
 
-- Integration is through `ExtensionProvider` registration and provider contracts.
-- Recommended boundary is HTTPS + mTLS (`MTLSAndBearerTokenSecret` for stricter paths).
-- Entitlement and deny semantics are enforced in runtime policy flow.
+* Integration is through `ExtensionProvider` registration and provider contracts.
+* Recommended boundary is HTTPS + mTLS (`MTLSAndBearerTokenSecret` for stricter paths).
+* Entitlement and deny semantics are enforced in runtime policy flow.
 
 NOTE: There are two systems, the baseline system here is enforcing real policy decisions. This is NOT crippleware. Everything is the same between the baseline and AIMXS versions, except the decision kernels. 
 
 ### Baseline Features
 
-A minimal working policy engine path suitable for wiring and guardrail posture.
-Decisions: returns ALLOW or DENY
-Rules: minimal deny set + default allow (delete denied, prod approval gate)
-Grant token: returns a simple grant token string on ALLOW
-Built in audit with most recent 2000 events emitted to runtime logs (logs can be shipped to a log sink)
-durable *run metadata and payload snapshots* in Postgres
-Evidence provider in-memory provider (evidence persists only as long as that provider pod stays up, it is not a durable evidence store)
+* A minimal working policy engine path suitable for wiring and guardrail posture.
+* Decisions: returns ALLOW or DENY
+* Rules: minimal deny set + default allow (delete denied, prod approval gate)
+* Grant token: returns a simple grant token string on ALLOW
+* Built in audit with most recent 2000 events emitted to runtime logs (logs can be shipped to a log sink)
+* durable *run metadata and payload snapshots* in Postgres
+* Evidence provider in-memory provider (evidence persists only as long as that provider pod stays up, it is not a durable evidence store)
 
 ### AIMXS Features 
 
-Richer decision model at the contract boundary
-Allows decision values: ALLOW, DENY, CHALLENGE, DEFER.
-Contract surface explicitly requires outcomes be one of: ALLOW, DENY, DEFER.
-Includes explicit grant-token requirements for non-DENY decisions when enforcement is enabled.
-Handshake message schema with deterministic hashing requirements
-Explicit gate to enforce handshake validation
-Mandates determinism constraints
+* Richer decision model at the contract boundary
+* Allows decision values: ALLOW, DENY, CHALLENGE, DEFER.
+* Contract surface explicitly requires outcomes be one of: ALLOW, DENY, DEFER.
+* Includes explicit grant-token requirements for non-DENY decisions when enforcement is enabled.
+* Handshake message schema with deterministic hashing requirements
+* Explicit gate to enforce handshake validation
+* Mandates determinism constraints
 
 Policy stratification, grants and escalation as normative structure:
-policy bucket classification
-required grants (or digest)
-grant match result PASS/FAIL/NOT_REQUIRED
-evidence readiness gating
-escalation ladder identifiers, record references and timeboxes
-fail-closed behavior for unknown boundary classes
+* policy bucket classification
+* required grants (or digest)
+* grant match result PASS/FAIL/NOT_REQUIRED
+* evidence readiness gating
+* escalation ladder identifiers, record references and timeboxes
+* fail-closed behavior for unknown boundary classes
 
 Deterministic evidence commitments requiring evidence hashing to commit to:
-proposal/state/decision
-provider_meta including policy_stratification
-adapter response subsets
-kernel_state continuity tokens when enabled
-config snapshots when present
-normalized evidence pointers
+* proposal/state/decision
+* provider_meta including policy_stratification
+* adapter response subsets
+* kernel_state continuity tokens when enabled
+* config snapshots when present
+* normalized evidence pointers
 
 Explicit audit integration seam with optional audit sink interface 
+
 Governance providers emit audit events through sink
+
 Treats audit events as something that can be part of evidence requirements
 
 AIMXS is structured around evidence artifacts and integrity commitments:
-- providers produce an **EvidenceEnvelope** and compute an **evidence hash** that commits to structured content
-- provides a deterministic **evidence bundle manifest generator** listing evidence files and sha256 digests
-- includes a **retention policy shape** that is evidence-aware keyed by action/risk/boundary classes
-- enumerates required evidence kinds (including audit events), with an "escalate on missing" boolean.
-- produce evidence artifacts whose integrity is committed by hash
-- manages retention and escalation based on completeness/readiness
+* providers produce an **EvidenceEnvelope** and compute an **evidence hash** that commits to structured content
+* provides a deterministic **evidence bundle manifest generator** listing evidence files and sha256 digests
+* includes a **retention policy shape** that is evidence-aware keyed by action/risk/boundary classes
+* enumerates required evidence kinds (including audit events), with an "escalate on missing" boolean.
+* produce evidence artifacts whose integrity is committed by hash
+* manages retention and escalation based on completeness/readiness
 
 AIMXS is designed to represent varied governance outcomes e.g. “not allowed but also not simply deny” workflows backed by evidence readiness and grant satisfaction gating.
-- DEFER is a first-class outcome in the governance provider
-- forces **DEFER only** when evidence is not ready, required grants are unmet or with an optional configured timeout. Otherwise DEFER becomes DENY.
-- the governance provider uses gate evaluation and can enforce handshake validation
-- returns ERROR if handshake validation fails, which the governance provider converts to DENY (unless timeout posture is DEFER)
+* DEFER is a first-class outcome in the governance provider
+* forces **DEFER only** when evidence is not ready, required grants are unmet or with an optional configured timeout. Otherwise DEFER becomes DENY.
+* the governance provider uses gate evaluation and can enforce handshake validation
+* returns ERROR if handshake validation fails, which the governance provider converts to DENY (unless timeout posture is DEFER)
 
 ## Quick Start (Local)
 
