@@ -154,13 +154,13 @@ jobs:
           if [ -z "${requested_namespace}" ]; then
             requested_namespace="${{ vars.GHCR_IMAGE_NAMESPACE }}"
           fi
-          namespace=""
-          if [ -n "${requested_namespace}" ]; then
-            namespace="$(echo "${requested_namespace}" | tr '[:upper:]' '[:lower:]' | sed -E 's|[^a-z0-9._/-]+|-|g; s|/+|/|g; s|^/||; s|/$||')"
-            if [ -z "${namespace}" ]; then
-              echo "Resolved image namespace is empty from requested namespace '${requested_namespace}'." >&2
-              exit 1
-            fi
+          if [ -z "${requested_namespace}" ]; then
+            requested_namespace="${GITHUB_REPOSITORY#*/}"
+          fi
+          namespace="$(echo "${requested_namespace}" | tr '[:upper:]' '[:lower:]' | sed -E 's|[^a-z0-9._/-]+|-|g; s|/+|/|g; s|^/||; s|/$||')"
+          if [ -z "${namespace}" ]; then
+            echo "Resolved image namespace is empty from requested namespace '${requested_namespace}'." >&2
+            exit 1
           fi
 
           requested_tag="${{ github.event.inputs.image_tag }}"
@@ -230,22 +230,27 @@ jobs:
         env:
           GHCR_PUSH_TOKEN: ${{ secrets.GHCR_PUSH_TOKEN }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GITHUB_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
 
-          if [ -z "${GHCR_PUSH_TOKEN}" ]; then
-            echo "GHCR_PUSH_TOKEN is required for push_images=true." >&2
-            echo "Create repo secret GHCR_PUSH_TOKEN (PAT with read:packages, write:packages; SSO authorized for org if required)." >&2
-            exit 1
+          if [ -n "${GHCR_PUSH_TOKEN}" ]; then
+            if [ -z "${GHCR_USERNAME}" ]; then
+              echo "GHCR_PUSH_TOKEN is set but GHCR_USERNAME is empty." >&2
+              echo "Set GHCR_USERNAME to the account that owns GHCR_PUSH_TOKEN." >&2
+              exit 1
+            fi
+            echo "Using GHCR_PUSH_TOKEN for GHCR authentication."
+            printf '%s' "${GHCR_PUSH_TOKEN}" | docker login "${REGISTRY}" -u "${GHCR_USERNAME}" --password-stdin
+          else
+            echo "Using GITHUB_TOKEN fallback for GHCR authentication."
+            echo "If push returns 403, configure GHCR_PUSH_TOKEN + GHCR_USERNAME."
+            if [ -z "${GITHUB_TOKEN_FALLBACK}" ]; then
+              echo "GITHUB_TOKEN fallback is empty." >&2
+              exit 1
+            fi
+            printf '%s' "${GITHUB_TOKEN_FALLBACK}" | docker login "${REGISTRY}" -u "${GITHUB_ACTOR}" --password-stdin
           fi
-          if [ -z "${GHCR_USERNAME}" ]; then
-            echo "GHCR_USERNAME is required when GHCR_PUSH_TOKEN is set." >&2
-            echo "Set GHCR_USERNAME to the account that owns GHCR_PUSH_TOKEN." >&2
-            exit 1
-          fi
-
-          echo "Using GHCR_PUSH_TOKEN for GHCR authentication."
-          printf '%s' "${GHCR_PUSH_TOKEN}" | docker login "${REGISTRY}" -u "${GHCR_USERNAME}" --password-stdin
 
       - name: Show resolved image target
         shell: bash
