@@ -18,6 +18,10 @@ on:
         description: "GHCR owner/org (default: repository owner)"
         required: false
         type: string
+      image_namespace:
+        description: "Optional GHCR namespace path under owner (set to avoid package ownership collisions)"
+        required: false
+        type: string
       platforms:
         description: "Target platforms for buildx"
         required: false
@@ -146,6 +150,16 @@ jobs:
           fi
           owner="$(echo "${owner}" | tr '[:upper:]' '[:lower:]')"
 
+          requested_namespace="${{ github.event.inputs.image_namespace }}"
+          namespace=""
+          if [ -n "${requested_namespace}" ]; then
+            namespace="$(echo "${requested_namespace}" | tr '[:upper:]' '[:lower:]' | sed -E 's|[^a-z0-9._/-]+|-|g; s|/+|/|g; s|^/||; s|/$||')"
+            if [ -z "${namespace}" ]; then
+              echo "Resolved image namespace is empty from input image_namespace=${requested_namespace}." >&2
+              exit 1
+            fi
+          fi
+
           requested_tag="${{ github.event.inputs.image_tag }}"
           if [ -n "${requested_tag}" ]; then
             release_tag="${requested_tag}"
@@ -180,13 +194,18 @@ jobs:
             vuln_ignore_unfixed="false"
           fi
 
-          image_repo="${{ env.REGISTRY }}/${owner}/${{ matrix.component }}"
+          if [ -n "${namespace}" ]; then
+            image_repo="${{ env.REGISTRY }}/${owner}/${namespace}/${{ matrix.component }}"
+          else
+            image_repo="${{ env.REGISTRY }}/${owner}/${{ matrix.component }}"
+          fi
           tags="${image_repo}:${release_tag}"
           if [ "${lock_tag}" != "${release_tag}" ]; then
             tags="${tags},${image_repo}:${lock_tag}"
           fi
 
           echo "owner=${owner}" >>"${GITHUB_OUTPUT}"
+          echo "namespace=${namespace}" >>"${GITHUB_OUTPUT}"
           echo "release_tag=${release_tag}" >>"${GITHUB_OUTPUT}"
           echo "lock_tag=${lock_tag}" >>"${GITHUB_OUTPUT}"
           echo "push_images=${push_images}" >>"${GITHUB_OUTPUT}"
