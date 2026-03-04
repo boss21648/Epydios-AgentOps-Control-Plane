@@ -214,40 +214,23 @@ jobs:
             echo "If push fails with HTTP 403, either grant this repo write access to existing GHCR packages or set GHCR_PUSH_TOKEN."
           fi
 
-      - name: Preflight GHCR package access
-        if: steps.meta.outputs.push_images == 'true'
+      - name: Validate GHCR secret pairing
+        if: steps.meta.outputs.push_images == 'true' && secrets.GHCR_PUSH_TOKEN != ''
         shell: bash
-        env:
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || github.actor }}
-          GHCR_TOKEN: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          image_repo="${{ steps.meta.outputs.image_repo }}"
-          package_ref="${image_repo#${{ env.REGISTRY }}/}"
-          status="$(curl -sS -o /tmp/ghcr-tags.json -w "%{http_code}" -u "${GHCR_USERNAME}:${GHCR_TOKEN}" "https://${{ env.REGISTRY }}/v2/${package_ref}/tags/list" || true)"
-          case "${status}" in
-            200)
-              echo "GHCR access check passed for existing package: ${image_repo}"
-              ;;
-            404)
-              echo "GHCR package does not exist yet (will be created on push): ${image_repo}"
-              ;;
-            401|403)
-              echo "GHCR access check failed for ${image_repo} (HTTP ${status})." >&2
-              echo "Set GHCR_PUSH_TOKEN (PAT with write:packages) and optional GHCR_USERNAME, or grant this repo package write access in GHCR settings." >&2
-              exit 1
-              ;;
-            *)
-              echo "GHCR access check returned HTTP ${status} for ${image_repo}; continuing to build."
-              ;;
-          esac
+          if [ -z "${{ secrets.GHCR_USERNAME }}" ]; then
+            echo "GHCR_PUSH_TOKEN is set but GHCR_USERNAME is empty." >&2
+            echo "Set GHCR_USERNAME to the account that owns GHCR_PUSH_TOKEN, or remove GHCR_PUSH_TOKEN to use GITHUB_TOKEN." >&2
+            exit 1
+          fi
 
       - name: Login to GHCR
         if: steps.meta.outputs.push_images == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.GHCR_USERNAME != '' && secrets.GHCR_USERNAME || github.actor }}
+          username: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_USERNAME || github.actor }}
           password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build and push image
